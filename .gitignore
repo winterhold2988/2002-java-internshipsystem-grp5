@@ -1,0 +1,14 @@
+# Build outputs
+/out/
+/build/
+/target/
+*.class
+
+# IDE artifacts
+.idea/
+*.iml
+.vscode/
+.DS_Store
+
+# Generated docs
+html/
