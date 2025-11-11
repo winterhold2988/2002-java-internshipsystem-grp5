@@ -30,7 +30,7 @@ public class ApplicationRepository {
     public Collection<InternshipApplication> findAll() {
         return applications.values();
     }
-A
+    
     // Find all applications submitted by a specific student.
     public Stream<InternshipApplication> findByStudent(Student student) {
         return applications.values().stream().filter(app -> app.getStudent().equals(student));
