@@ -1,4 +1,4 @@
-package edu.ntu.ccds.sc2002.internship.enums;
+package code.enums;
 
 // Decision outcomes for internship withdrawal requests.
 public enum WithdrawalDecision {

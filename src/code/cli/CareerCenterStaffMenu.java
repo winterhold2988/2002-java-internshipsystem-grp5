@@ -1,8 +1,9 @@
-package edu.ntu.ccds.sc2002.internship.cli;
+package code.cli;
 
-import edu.ntu.ccds.sc2002.internship.enums.*;
-import edu.ntu.ccds.sc2002.internship.model.*;
-import edu.ntu.ccds.sc2002.internship.repository.*;
+import code.enums.*;
+import code.model.*;
+import code.repository.*;
+import code.service.IntershipService;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -18,9 +19,10 @@ public class CareerCenterStaffMenu extends MenuBase {
             ApplicationRepository applicationRepository,
             RegistrationRequestRepository registrationRequestRepository,
             WithdrawalRequestRepository withdrawalRequestRepository,
+            IntershipService internshipService,
             User currentUser) {
         super(userRepository, internshipRepository, applicationRepository,
-              registrationRequestRepository, withdrawalRequestRepository, currentUser);
+              registrationRequestRepository, withdrawalRequestRepository, internshipService, currentUser);
     }
 
     @Override

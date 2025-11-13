@@ -1,10 +1,12 @@
-package edu.ntu.ccds.sc2002.internship.cli;
+package code.cli;
 
-import edu.ntu.ccds.sc2002.internship.model.User;
-import edu.ntu.ccds.sc2002.internship.repository.*;
+import code.model.User;
+import code.repository.*;
+import code.service.IntershipService;
 
 /**
- * Base class for all menu classes, providing common functionality and access to repositories.
+ * Base class for all menu classes, providing common functionality and access to
+ * repositories.
  */
 public abstract class MenuBase {
 
@@ -13,6 +15,7 @@ public abstract class MenuBase {
     protected final ApplicationRepository applicationRepository;
     protected final RegistrationRequestRepository registrationRequestRepository;
     protected final WithdrawalRequestRepository withdrawalRequestRepository;
+    protected final IntershipService internshipService;
     protected final User currentUser;
 
     protected MenuBase(
@@ -21,12 +24,14 @@ public abstract class MenuBase {
             ApplicationRepository applicationRepository,
             RegistrationRequestRepository registrationRequestRepository,
             WithdrawalRequestRepository withdrawalRequestRepository,
+            IntershipService internshipService,
             User currentUser) {
         this.userRepository = userRepository;
         this.internshipRepository = internshipRepository;
         this.applicationRepository = applicationRepository;
         this.registrationRequestRepository = registrationRequestRepository;
         this.withdrawalRequestRepository = withdrawalRequestRepository;
+        this.internshipService = internshipService;
         this.currentUser = currentUser;
     }
 
@@ -61,9 +66,9 @@ public abstract class MenuBase {
      */
     protected void handleChangePassword() {
         CLIUtil.printHeader("Change Password");
-        
+
         String currentPassword = CLIUtil.readString("Enter current password: ");
-        
+
         if (!currentPassword.equals(currentUser.getPassword())) {
             CLIUtil.displayError("Current password is incorrect.");
             CLIUtil.pause();

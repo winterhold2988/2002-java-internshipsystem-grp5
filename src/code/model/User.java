@@ -1,6 +1,6 @@
-package edu.ntu.ccds.sc2002.internship.model;
+package code.model;
 
-import edu.ntu.ccds.sc2002.internship.enums.UserRole;
+import code.enums.UserRole;
 
 // Abstract representation of a user in the internship system.
 public abstract class User {

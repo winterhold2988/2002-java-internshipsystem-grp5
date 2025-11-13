@@ -1,4 +1,4 @@
-package edu.ntu.ccds.sc2002.internship.enums;
+package code.enums;
 
 // Statuses for internship applications.
 public enum ApplicationStatus {

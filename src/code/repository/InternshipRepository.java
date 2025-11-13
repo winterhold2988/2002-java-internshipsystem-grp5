@@ -1,6 +1,6 @@
-package edu.ntu.ccds.sc2002.internship.repository;
+package code.repository;
 
-import edu.ntu.ccds.sc2002.internship.model.InternshipOpportunity;
+import code.model.InternshipOpportunity;
 
 import java.util.Collection;
 import java.util.LinkedHashMap;

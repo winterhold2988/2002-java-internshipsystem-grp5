@@ -1,4 +1,4 @@
-package edu.ntu.ccds.sc2002.internship.model;
+package code.model;
 
 import java.time.LocalDateTime;
 
