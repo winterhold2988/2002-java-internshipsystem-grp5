@@ -5,7 +5,6 @@ import code.cli.LoginHandler;
 import code.cli.MainMenu;
 import code.config.AppConfig;
 import code.model.*;
-import code.service.IntershipService;
 import code.util.*;
 
 /**
@@ -34,30 +33,30 @@ public final class App {
         try {
             // Configure logging
             initializeLogging();
-            
+
             Logger.info("=== Internship Placement Management System Starting ===");
-            
+
             // Initialize application configuration
             config = new AppConfig();
             Logger.info("Application configuration initialized");
-            
+
             // Display welcome message
             displayWelcomeBanner();
-            
+
             // Display data loading summary
             displayDataSummary();
-            
+
             // Main application loop
             runApplicationLoop();
-            
+
             // Save data before exit
             saveDataOnExit();
-            
+
             // Exit message
             displayExitMessage();
-            
+
             Logger.info("=== Internship Placement Management System Stopped ===");
-            
+
         } catch (Exception e) {
             ErrorHandler.handleException(e, "Critical error during application startup");
             Logger.error("Application failed to start", e);
@@ -94,7 +93,7 @@ public final class App {
                     running = false;
                 } else {
                     Logger.info("User logged in: " + currentUser.getId() + " (" + currentUser.getRole() + ")");
-                    
+
                     // Show main menu based on user role
                     MainMenu mainMenu = new MainMenu(
                             config.getUserRepository(),
@@ -102,10 +101,10 @@ public final class App {
                             config.getApplicationRepository(),
                             config.getRegistrationRequestRepository(),
                             config.getWithdrawalRequestRepository(),
-                            new IntershipService(config.getInternshipRepository()),
+                            config.getInternshipService(),
                             currentUser);
                     mainMenu.display();
-                    
+
                     Logger.info("User logged out: " + currentUser.getId());
                 }
             } catch (Exception e) {
@@ -121,19 +120,19 @@ public final class App {
     private static void displayDataSummary() {
         ConsoleUtil.printSeparator();
         ConsoleUtil.printInfo("System initialized successfully!");
-        
+
         // Get statistics
         long studentCount = config.getUserRepository().findAll().stream()
-            .filter(u -> u.getRole() == code.enums.UserRole.STUDENT).count();
+                .filter(u -> u.getRole() == code.enums.UserRole.STUDENT).count();
         long staffCount = config.getUserRepository().findAll().stream()
-            .filter(u -> u.getRole() == code.enums.UserRole.CAREER_CENTER_STAFF).count();
+                .filter(u -> u.getRole() == code.enums.UserRole.CAREER_CENTER_STAFF).count();
         long repCount = config.getUserRepository().findAll().stream()
-            .filter(u -> u.getRole() == code.enums.UserRole.COMPANY_REPRESENTATIVE).count();
-        
+                .filter(u -> u.getRole() == code.enums.UserRole.COMPANY_REPRESENTATIVE).count();
+
         ConsoleUtil.printKeyValue("Students loaded", String.valueOf(studentCount));
         ConsoleUtil.printKeyValue("Staff loaded", String.valueOf(staffCount));
         ConsoleUtil.printKeyValue("Company Reps loaded", String.valueOf(repCount));
-        
+
         ConsoleUtil.printSeparator();
         ConsoleUtil.printEmptyLine();
     }
@@ -159,10 +158,9 @@ public final class App {
         ConsoleUtil.printEmptyLine();
         ConsoleUtil.printHeader("Thank you for using the Internship Placement Management System");
         ConsoleUtil.printBox(java.util.Arrays.asList(
-            "System developed by Group 5",
-            "SC/CE/CZ2002 - Object-Oriented Design & Programming",
-            "Nanyang Technological University - 2025"
-        ));
+                "System developed by Group 5",
+                "SC/CE/CZ2002 - Object-Oriented Design & Programming",
+                "Nanyang Technological University - 2025"));
         ConsoleUtil.printSuccess("Goodbye!");
         ConsoleUtil.printEmptyLine();
     }

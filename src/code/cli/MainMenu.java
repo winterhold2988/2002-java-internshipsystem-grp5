@@ -3,7 +3,7 @@ package code.cli;
 import code.enums.UserRole;
 import code.model.User;
 import code.repository.*;
-import code.service.IntershipService;
+import code.service.InternshipService;
 
 /**
  * Main menu that routes users to their respective role-specific menus.
@@ -16,7 +16,7 @@ public class MainMenu extends MenuBase {
             ApplicationRepository applicationRepository,
             RegistrationRequestRepository registrationRequestRepository,
             WithdrawalRequestRepository withdrawalRequestRepository,
-            IntershipService internshipService,
+            InternshipService internshipService,
             User currentUser) {
         super(userRepository, internshipRepository, applicationRepository,
                 registrationRequestRepository, withdrawalRequestRepository, internshipService, currentUser);

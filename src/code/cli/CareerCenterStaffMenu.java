@@ -3,8 +3,7 @@ package code.cli;
 import code.enums.*;
 import code.model.*;
 import code.repository.*;
-import code.service.IntershipService;
-
+import code.service.InternshipService;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -19,10 +18,10 @@ public class CareerCenterStaffMenu extends MenuBase {
             ApplicationRepository applicationRepository,
             RegistrationRequestRepository registrationRequestRepository,
             WithdrawalRequestRepository withdrawalRequestRepository,
-            IntershipService internshipService,
+            InternshipService internshipService,
             User currentUser) {
         super(userRepository, internshipRepository, applicationRepository,
-              registrationRequestRepository, withdrawalRequestRepository, internshipService, currentUser);
+                registrationRequestRepository, withdrawalRequestRepository, internshipService, currentUser);
     }
 
     @Override
@@ -71,14 +70,14 @@ public class CareerCenterStaffMenu extends MenuBase {
     private void printStaffMenu() {
         printMenuHeader("Career Center Staff Menu");
         String[] options = {
-            "Review Registration Requests",
-            "Review Internship Opportunities",
-            "View All Opportunities",
-            "View All Applications",
-            "Review Withdrawal Requests",
-            "Generate Reports",
-            "Manage Users",
-            "Change Password"
+                "Review Registration Requests",
+                "Review Internship Opportunities",
+                "View All Opportunities",
+                "View All Applications",
+                "Review Withdrawal Requests",
+                "Generate Reports",
+                "Manage Users",
+                "Change Password"
         };
         printMenuOptions(options);
     }
@@ -100,12 +99,12 @@ public class CareerCenterStaffMenu extends MenuBase {
         for (int i = 0; i < pendingRequests.size(); i++) {
             RegistrationRequest req = pendingRequests.get(i);
             CompanyRepresentative rep = req.getRepresentative();
-            System.out.println((i + 1) + ". " + rep.getName() + " - " + 
-                             rep.getCompanyName() + " (ID: " + rep.getId() + ")");
+            System.out.println((i + 1) + ". " + rep.getName() + " - " +
+                    rep.getCompanyName() + " (ID: " + rep.getId() + ")");
         }
 
-        int choice = CLIUtil.readInt("\nSelect request to review (0 to cancel): ", 
-                                     0, pendingRequests.size());
+        int choice = CLIUtil.readInt("\nSelect request to review (0 to cancel): ",
+                0, pendingRequests.size());
 
         if (choice == 0) {
             return;
@@ -166,12 +165,12 @@ public class CareerCenterStaffMenu extends MenuBase {
         System.out.println("Pending opportunities:");
         for (int i = 0; i < pendingOpportunities.size(); i++) {
             InternshipOpportunity opp = pendingOpportunities.get(i);
-            System.out.println((i + 1) + ". " + opp.getTitle() + " - " + 
-                             opp.getCompanyName() + " (ID: " + opp.getId() + ")");
+            System.out.println((i + 1) + ". " + opp.getTitle() + " - " +
+                    opp.getCompanyName() + " (ID: " + opp.getId() + ")");
         }
 
-        int choice = CLIUtil.readInt("\nSelect opportunity to review (0 to cancel): ", 
-                                     0, pendingOpportunities.size());
+        int choice = CLIUtil.readInt("\nSelect opportunity to review (0 to cancel): ",
+                0, pendingOpportunities.size());
 
         if (choice == 0) {
             return;
@@ -256,12 +255,12 @@ public class CareerCenterStaffMenu extends MenuBase {
         for (int i = 0; i < pendingRequests.size(); i++) {
             WithdrawalRequest req = pendingRequests.get(i);
             InternshipApplication app = req.getApplication();
-            System.out.println((i + 1) + ". " + app.getStudent().getName() + 
-                             " - Application ID: " + app.getId());
+            System.out.println((i + 1) + ". " + app.getStudent().getName() +
+                    " - Application ID: " + app.getId());
         }
 
-        int choice = CLIUtil.readInt("\nSelect request to review (0 to cancel): ", 
-                                     0, pendingRequests.size());
+        int choice = CLIUtil.readInt("\nSelect request to review (0 to cancel): ",
+                0, pendingRequests.size());
 
         if (choice == 0) {
             return;
@@ -288,7 +287,7 @@ public class CareerCenterStaffMenu extends MenuBase {
             case 1:
                 selectedRequest.setDecision(WithdrawalDecision.APPROVED);
                 app.setStatus(ApplicationStatus.UNSUCCESSFUL);
-                
+
                 // Free up the slot
                 InternshipOpportunity opp = app.getOpportunity();
                 if (opp.getConfirmedSlots() > 0) {
@@ -298,7 +297,7 @@ public class CareerCenterStaffMenu extends MenuBase {
                     }
                     internshipRepository.save(opp);
                 }
-                
+
                 withdrawalRequestRepository.save(selectedRequest);
                 applicationRepository.save(app);
                 CLIUtil.displaySuccess("Withdrawal approved!");
@@ -473,7 +472,7 @@ public class CareerCenterStaffMenu extends MenuBase {
             for (User user : users) {
                 System.out.println("\nID: " + user.getId());
                 System.out.println("Name: " + user.getName());
-                
+
                 if (user instanceof Student) {
                     Student student = (Student) user;
                     System.out.println("Major: " + student.getMajor());
@@ -486,7 +485,7 @@ public class CareerCenterStaffMenu extends MenuBase {
                     CareerCenterStaff s = (CareerCenterStaff) user;
                     System.out.println("Department: " + s.getDepartment());
                 }
-                
+
                 CLIUtil.printSeparator();
             }
         }
@@ -515,11 +514,11 @@ public class CareerCenterStaffMenu extends MenuBase {
         System.out.println("Company: " + app.getOpportunity().getCompanyName());
         System.out.println("Status: " + app.getStatus());
         System.out.println("Submitted: " + app.getSubmittedAt());
-        
+
         if (app.getStatus() == ApplicationStatus.SUCCESSFUL) {
             System.out.println("Placement Accepted: " + (app.isPlacementAccepted() ? "Yes" : "No"));
         }
-        
+
         CLIUtil.printSeparator();
     }
 

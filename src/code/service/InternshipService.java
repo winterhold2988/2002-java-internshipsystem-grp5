@@ -6,10 +6,10 @@ import code.repository.InternshipRepository;
 import java.util.List;
 import java.util.stream.Collectors;
 
-public class IntershipService {
+public class InternshipService {
     private final InternshipRepository internshipRepository;
 
-    public IntershipService(InternshipRepository internshipRepository) {
+    public InternshipService(InternshipRepository internshipRepository) {
         this.internshipRepository = internshipRepository;
     }
 

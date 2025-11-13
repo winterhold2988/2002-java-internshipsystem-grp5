@@ -3,8 +3,7 @@ package code.cli;
 import code.enums.ApplicationStatus;
 import code.model.*;
 import code.repository.*;
-import code.service.IntershipService;
-
+import code.service.InternshipService;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -21,7 +20,7 @@ public class StudentMenu extends MenuBase {
             ApplicationRepository applicationRepository,
             RegistrationRequestRepository registrationRequestRepository,
             WithdrawalRequestRepository withdrawalRequestRepository,
-            IntershipService internshipService,
+            InternshipService internshipService,
             User currentUser) {
         super(userRepository, internshipRepository, applicationRepository,
                 registrationRequestRepository, withdrawalRequestRepository, internshipService, currentUser);

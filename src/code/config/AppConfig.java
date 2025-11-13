@@ -1,14 +1,15 @@
 package code.config;
 
-import code.repository.*;
 import code.data.*;
 import code.dto.*;
-
+import code.repository.*;
+import code.service.InternshipService;
 import java.io.IOException;
 
 /**
  * AppConfig is the central configuration class for the application.
- * It initializes all repositories, data loaders, and utilities needed by the application.
+ * It initializes all repositories, data loaders, and utilities needed by the
+ * application.
  */
 public class AppConfig {
 
@@ -23,9 +24,11 @@ public class AppConfig {
     private final DataBootstrap dataBootstrap;
     private final DataPersistenceManager dataPersistenceManager;
     private final IDGenerator idGenerator;
-    
+
     // Report generation
     private final ReportGenerator reportGenerator;
+    // Services
+    private final InternshipService internshipService;
 
     /**
      * Initializes the application configuration and loads initial data.
@@ -46,33 +49,31 @@ public class AppConfig {
                 internshipRepository,
                 applicationRepository,
                 registrationRequestRepository,
-                withdrawalRequestRepository
-        );
+                withdrawalRequestRepository);
         this.dataBootstrap.initialize();
 
         // Initialize data persistence manager
         this.dataPersistenceManager = new DataPersistenceManager(
                 userRepository,
                 internshipRepository,
-                applicationRepository
-        );
+                applicationRepository);
 
         // Initialize ID generator
         this.idGenerator = new IDGenerator(
                 applicationRepository,
                 internshipRepository,
                 registrationRequestRepository,
-                withdrawalRequestRepository
-        );
-        
+                withdrawalRequestRepository);
+        // Initialize services
+        this.internshipService = new InternshipService(this.internshipRepository);
+
         // Initialize report generator
         this.reportGenerator = new ReportGenerator(
                 userRepository,
                 internshipRepository,
                 applicationRepository,
                 registrationRequestRepository,
-                withdrawalRequestRepository
-        );
+                withdrawalRequestRepository);
     }
 
     // Getters for repositories
@@ -108,8 +109,12 @@ public class AppConfig {
     public IDGenerator getIdGenerator() {
         return idGenerator;
     }
-    
+
     public ReportGenerator getReportGenerator() {
         return reportGenerator;
+    }
+
+    public InternshipService getInternshipService() {
+        return internshipService;
     }
 }

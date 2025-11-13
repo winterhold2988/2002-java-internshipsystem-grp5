@@ -2,7 +2,7 @@ package code.cli;
 
 import code.model.User;
 import code.repository.*;
-import code.service.IntershipService;
+import code.service.InternshipService;
 
 /**
  * Base class for all menu classes, providing common functionality and access to
@@ -15,7 +15,7 @@ public abstract class MenuBase {
     protected final ApplicationRepository applicationRepository;
     protected final RegistrationRequestRepository registrationRequestRepository;
     protected final WithdrawalRequestRepository withdrawalRequestRepository;
-    protected final IntershipService internshipService;
+    protected final InternshipService internshipService;
     protected final User currentUser;
 
     protected MenuBase(
@@ -24,7 +24,7 @@ public abstract class MenuBase {
             ApplicationRepository applicationRepository,
             RegistrationRequestRepository registrationRequestRepository,
             WithdrawalRequestRepository withdrawalRequestRepository,
-            IntershipService internshipService,
+            InternshipService internshipService,
             User currentUser) {
         this.userRepository = userRepository;
         this.internshipRepository = internshipRepository;
