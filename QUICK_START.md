@@ -1,6 +1,6 @@
 # Quick Start Guide - Internship Placement Management System
 
-## Installation & Running
+## 🚀 Installation & Running
 
 ### 1. Compile the Project
 ```bash
@@ -11,23 +11,31 @@ javac -d bin -sourcepath src $(find src -name "*.java")
 
 ### 2. Run the Application
 ```bash
-java -cp bin:src/resources code.App
+java -cp bin code.App
 ```
 
-## Data Layer Overview
+### 3. First Launch
+The application will:
+1. ✅ Initialize all repositories
+2. ✅ Load data from CSV files in `src/resources/data/`
+3. ✅ Generate unique IDs for new entities
+4. ✅ Display welcome banner
+5. ✅ Show data loading summary
+6. ✅ Present login screen
 
-The application automatically loads data from CSV files on startup using the data layer:
+## 📋 System Overview
 
-### Automatic Data Loading
-When you create an `AppConfig` instance, it automatically:
-1. Initializes all repositories (UserRepository, InternshipRepository, etc.)
-2. Loads students from `src/resources/data/student_list.csv`
-3. Loads staff from `src/resources/data/staff_list.csv`
-4. Loads company representatives from `src/resources/data/company_representative_list.csv`
-5. Prints a summary of loaded data
+This is a complete **Command-Line Interface (CLI)** application for managing internship placements at NTU.
 
-### Default Credentials
-All users loaded from CSV files have the default password: **password**
+### Three User Types
+
+| User Type | ID Format | Example | Capabilities |
+|-----------|-----------|---------|--------------|
+| **Student** | U1234567A | U2310001A | View/apply for internships (max 3), accept placements, request withdrawals |
+| **Company Rep** | Email | jane.ong@techwave.com | Create opportunities (max 5), review applications, approve/reject |
+| **Staff** | NTU Account | sng001 | Approve reps, approve opportunities, handle withdrawals, generate reports |
+
+**Default Password**: `password` (for all users)
 
 **Students:**
 - U2310001A - Tan Wei Ling (Computer Science, Year 2)

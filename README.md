@@ -292,8 +292,221 @@ CompanyActivityReport report = reportGen.generateCompanyReport(rep);
 System.out.println(report.generateReport());
 
 // Student activity
+// Student activity
 Student student = (Student) userRepo.findById("U2310001A").get();
 StudentActivityReport report = reportGen.generateStudentReport(student);
 System.out.println(report.generateReport());
+```
+
+## Utility Layer Implementation
+
+The `util/` package provides shared helper classes, error handling, and logging utilities:
+
+### Core Utility Classes
+
+1. **DateTimeUtil** - Date and time utilities
+   - `parseDate(String)` - Parses dates in dd/MM/yyyy format
+   - `parseDateTime(String)` - Parses date-times in dd/MM/yyyy HH:mm:ss format
+   - `formatDate(LocalDate)` - Formats dates for display
+   - `formatDateTime(LocalDateTime)` - Formats date-times for display
+   - `isValidDateFormat(String)` - Validates date format
+   - `isInPast(LocalDate)` - Checks if date is in the past
+   - `isInFuture(LocalDate)` - Checks if date is in the future
+   - `isToday(LocalDate)` - Checks if date is today
+   - `isWithinRange(LocalDate, LocalDate, LocalDate)` - Checks if date is within range
+   - `daysBetween(LocalDate, LocalDate)` - Calculates days between dates
+
+2. **StringUtil** - String manipulation and validation
+   - `isNullOrEmpty(String)` - Null-safe empty check
+   - `isNotEmpty(String)` - Null-safe non-empty check
+   - `trim(String)` - Null-safe trim
+   - `capitalize(String)` - Capitalizes first letter
+   - `capitalizeWords(String)` - Capitalizes all words
+   - `truncate(String, int)` - Truncates with ellipsis
+   - `padRight(String, int)` - Right-padding
+   - `padLeft(String, int)` - Left-padding
+   - `repeat(String, int)` - Repeats string
+   - `isAlphabetic(String)` - Checks for letters only
+   - `isNumeric(String)` - Checks for digits only
+   - `isAlphanumeric(String)` - Checks for letters and digits
+   - `removeWhitespace(String)` - Removes all whitespace
+   - `toSafeFilename(String)` - Converts to safe filename
+   - `mask(String, int)` - Masks sensitive data
+   - `toSnakeCase(String)` - Converts to snake_case
+   - `toCamelCase(String)` - Converts to camelCase
+
+3. **InputValidator** - Console input validation
+   - `readInt(Scanner, int, int, String)` - Reads integer within range
+   - `readPositiveInt(Scanner, String)` - Reads positive integer
+   - `readNonNegativeInt(Scanner, String)` - Reads non-negative integer
+   - `readBoolean(Scanner)` - Reads yes/no input
+   - `readNonEmptyString(Scanner, String)` - Reads required string
+   - `readPattern(Scanner, String, String, String)` - Reads string matching regex
+   - `readEmail(Scanner)` - Reads and validates email
+   - `readDate(Scanner, String)` - Reads date in dd/MM/yyyy format
+   - `readFutureDate(Scanner, String)` - Reads future date only
+   - `readDateInRange(Scanner, String, LocalDate, LocalDate)` - Reads date within range
+   - `isValidIdFormat(String, String)` - Validates ID format
+   - `isValidPhoneNumber(String)` - Validates phone number
+   - `isValidYear(int)` - Validates university year (1-4)
+   - `confirm(Scanner, String)` - Yes/no confirmation
+   - `readMenuChoice(Scanner, int, int)` - Reads menu selection
+
+4. **ConsoleUtil** - Console formatting and display
+   - `printHeader(String)` - Prints formatted header
+   - `printSeparator()` - Prints separator line
+   - `printThickSeparator()` - Prints thick separator
+   - `centerText(String, int)` - Centers text
+   - `printSuccess(String)` - Prints success message with prefix
+   - `printError(String)` - Prints error message with prefix
+   - `printWarning(String)` - Prints warning message with prefix
+   - `printInfo(String)` - Prints info message with prefix
+   - `printTable(String[], List<String[]>, int[])` - Prints formatted table
+   - `printNumberedList(List<String>)` - Prints numbered list
+   - `printBulletedList(List<String>)` - Prints bulleted list
+   - `printKeyValue(String, String)` - Prints key-value pair
+   - `printProgressBar(int, int, int)` - Prints progress bar
+   - `printBox(String)` - Prints text in box
+   - `formatMenuOption(int, String)` - Formats menu option
+
+5. **Logger** - Logging utility
+   - `setLogLevel(LogLevel)` - Sets minimum log level (DEBUG, INFO, WARN, ERROR)
+   - `setConsoleOutput(boolean)` - Enables/disables console logging
+   - `setFileOutput(boolean)` - Enables/disables file logging
+   - `debug(String)` - Logs debug message
+   - `info(String)` - Logs info message
+   - `warn(String)` - Logs warning message
+   - `error(String)` - Logs error message
+   - `error(String, Throwable)` - Logs error with exception
+   - `entering(String, String)` - Logs method entry
+   - `exiting(String, String)` - Logs method exit
+   - Logs written to `internship_system.log`
+
+6. **ErrorHandler** - Centralized error handling
+   - `handleException(Exception)` - Handles any exception with logging and user message
+   - `handleException(Exception, String)` - Handles exception with custom message
+   - `handleValidationError(String, String)` - Handles validation errors
+   - `displayError(String)` - Displays error to user
+   - `displayWarning(String)` - Displays warning to user
+   - `displayInfo(String)` - Displays info to user
+   - `displaySuccess(String)` - Displays success to user
+   - `safeExecute(RiskyOperation, String)` - Wraps risky operations with error handling
+
+### Exception Hierarchy
+
+The `util.exception/` package provides custom exceptions:
+
+1. **InternshipSystemException** - Base exception for all system exceptions
+2. **ValidationException** - Thrown when validation fails
+3. **DataNotFoundException** - Thrown when requested data is not found
+4. **DuplicateEntryException** - Thrown when duplicate entry is detected
+5. **UnauthorizedException** - Thrown when unauthorized action is attempted
+6. **BusinessRuleException** - Thrown when business rule is violated
+
+### Usage Examples
+
+**Date and time handling:**
+```java
+// Parse and validate dates
+String dateStr = "25/12/2024";
+Optional<LocalDate> date = DateTimeUtil.parseDate(dateStr);
+
+// Check date validity
+if (DateTimeUtil.isInFuture(date.get())) {
+    System.out.println("Date is in the future");
+}
+
+// Calculate days between
+long days = DateTimeUtil.daysBetween(LocalDate.now(), date.get());
+```
+
+**String manipulation:**
+```java
+// Safe string operations
+String name = StringUtil.trim(input);
+if (StringUtil.isNotEmpty(name)) {
+    String formatted = StringUtil.capitalizeWords(name);
+}
+
+// Format for display
+String title = StringUtil.truncate(longTitle, 50);
+String padded = StringUtil.padRight(title, 60);
+```
+
+**Console input validation:**
+```java
+Scanner scanner = new Scanner(System.in);
+
+// Read validated integer
+System.out.print("Enter year (1-4): ");
+int year = InputValidator.readInt(scanner, 1, 4, "Invalid year");
+
+// Read email
+System.out.print("Enter email: ");
+String email = InputValidator.readEmail(scanner);
+
+// Confirm action
+if (InputValidator.confirm(scanner, "Are you sure?")) {
+    // Proceed
+}
+```
+
+**Console formatting:**
+```java
+// Print formatted header
+ConsoleUtil.printHeader("Internship Management System");
+
+// Print table
+String[] headers = {"ID", "Name", "Status"};
+List<String[]> rows = Arrays.asList(
+    new String[]{"OPP0001", "Software Engineer", "Open"},
+    new String[]{"OPP0002", "Data Analyst", "Closed"}
+);
+int[] widths = {10, 30, 10};
+ConsoleUtil.printTable(headers, rows, widths);
+
+// Print status messages
+ConsoleUtil.printSuccess("Application submitted successfully");
+ConsoleUtil.printError("Invalid input");
+```
+
+**Error handling:**
+```java
+// Handle exceptions
+try {
+    // Risky operation
+} catch (Exception e) {
+    ErrorHandler.handleException(e);
+}
+
+// Safe execution
+boolean success = ErrorHandler.safeExecute(() -> {
+    // Code that might throw exception
+}, "Failed to process request");
+
+// Display messages
+ErrorHandler.displaySuccess("Operation completed");
+ErrorHandler.displayError("Operation failed");
+```
+
+**Logging:**
+```java
+// Configure logging
+Logger.setLogLevel(Logger.LogLevel.INFO);
+Logger.setConsoleOutput(true);
+Logger.setFileOutput(true);
+
+// Log messages
+Logger.info("Application started");
+Logger.debug("Processing user input");
+Logger.warn("Invalid configuration detected");
+Logger.error("Failed to load data", exception);
+
+// Log method execution
+Logger.entering("UserRepository", "findById");
+Logger.exiting("UserRepository", "findById", user);
+```
+
+## CLI pattern
 ```
 
