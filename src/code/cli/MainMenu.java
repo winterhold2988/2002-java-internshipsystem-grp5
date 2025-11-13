@@ -1,8 +1,9 @@
-package edu.ntu.ccds.sc2002.internship.cli;
+package code.cli;
 
-import edu.ntu.ccds.sc2002.internship.enums.UserRole;
-import edu.ntu.ccds.sc2002.internship.model.User;
-import edu.ntu.ccds.sc2002.internship.repository.*;
+import code.enums.UserRole;
+import code.model.User;
+import code.repository.*;
+import code.service.IntershipService;
 
 /**
  * Main menu that routes users to their respective role-specific menus.
@@ -15,9 +16,10 @@ public class MainMenu extends MenuBase {
             ApplicationRepository applicationRepository,
             RegistrationRequestRepository registrationRequestRepository,
             WithdrawalRequestRepository withdrawalRequestRepository,
+            IntershipService internshipService,
             User currentUser) {
-        super(userRepository, internshipRepository, applicationRepository, 
-              registrationRequestRepository, withdrawalRequestRepository, currentUser);
+        super(userRepository, internshipRepository, applicationRepository,
+                registrationRequestRepository, withdrawalRequestRepository, internshipService, currentUser);
     }
 
     @Override
@@ -51,8 +53,8 @@ public class MainMenu extends MenuBase {
     private void printMainMenu() {
         printMenuHeader("Main Menu");
         String[] options = {
-            "Access " + getRoleMenuName(),
-            "Change Password"
+                "Access " + getRoleMenuName(),
+                "Change Password"
         };
         printMenuOptions(options);
     }
@@ -63,25 +65,22 @@ public class MainMenu extends MenuBase {
         switch (role) {
             case STUDENT:
                 StudentMenu studentMenu = new StudentMenu(
-                    userRepository, internshipRepository, applicationRepository,
-                    registrationRequestRepository, withdrawalRequestRepository, currentUser
-                );
+                        userRepository, internshipRepository, applicationRepository,
+                        registrationRequestRepository, withdrawalRequestRepository, internshipService, currentUser);
                 studentMenu.display();
                 break;
 
             case COMPANY_REPRESENTATIVE:
                 CompanyRepresentativeMenu companyMenu = new CompanyRepresentativeMenu(
-                    userRepository, internshipRepository, applicationRepository,
-                    registrationRequestRepository, withdrawalRequestRepository, currentUser
-                );
+                        userRepository, internshipRepository, applicationRepository,
+                        registrationRequestRepository, withdrawalRequestRepository, internshipService, currentUser);
                 companyMenu.display();
                 break;
 
             case CAREER_CENTER_STAFF:
                 CareerCenterStaffMenu staffMenu = new CareerCenterStaffMenu(
-                    userRepository, internshipRepository, applicationRepository,
-                    registrationRequestRepository, withdrawalRequestRepository, currentUser
-                );
+                        userRepository, internshipRepository, applicationRepository,
+                        registrationRequestRepository, withdrawalRequestRepository, internshipService, currentUser);
                 staffMenu.display();
                 break;
 

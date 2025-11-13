@@ -1,8 +1,9 @@
-package edu.ntu.ccds.sc2002.internship.cli;
+package code.cli;
 
-import edu.ntu.ccds.sc2002.internship.enums.*;
-import edu.ntu.ccds.sc2002.internship.model.*;
-import edu.ntu.ccds.sc2002.internship.repository.*;
+import code.enums.*;
+import code.model.*;
+import code.repository.*;
+import code.service.IntershipService;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -21,9 +22,10 @@ public class CompanyRepresentativeMenu extends MenuBase {
             ApplicationRepository applicationRepository,
             RegistrationRequestRepository registrationRequestRepository,
             WithdrawalRequestRepository withdrawalRequestRepository,
+            IntershipService internshipService,
             User currentUser) {
         super(userRepository, internshipRepository, applicationRepository,
-              registrationRequestRepository, withdrawalRequestRepository, currentUser);
+                registrationRequestRepository, withdrawalRequestRepository, internshipService, currentUser);
         this.representative = (CompanyRepresentative) currentUser;
     }
 
@@ -76,12 +78,12 @@ public class CompanyRepresentativeMenu extends MenuBase {
     private void printCompanyMenu() {
         printMenuHeader("Company Representative Menu");
         String[] options = {
-            "Create Internship Opportunity",
-            "View My Opportunities",
-            "Edit Internship Opportunity",
-            "View Applications for My Opportunities",
-            "Review Applications (Approve/Reject)",
-            "Change Password"
+                "Create Internship Opportunity",
+                "View My Opportunities",
+                "Edit Internship Opportunity",
+                "View Applications for My Opportunities",
+                "Review Applications (Approve/Reject)",
+                "Change Password"
         };
         printMenuOptions(options);
     }
@@ -95,7 +97,7 @@ public class CompanyRepresentativeMenu extends MenuBase {
         String title = CLIUtil.readString("Enter internship title: ");
         String description = CLIUtil.readString("Enter description: ");
         String preferredMajor = CLIUtil.readString("Enter preferred major: ");
-        
+
         System.out.println("\nInternship Level:");
         InternshipLevel[] levels = InternshipLevel.values();
         for (int i = 0; i < levels.length; i++) {
@@ -151,8 +153,8 @@ public class CompanyRepresentativeMenu extends MenuBase {
 
         List<InternshipOpportunity> myOpportunities = internshipRepository.findAll().stream()
                 .filter(opp -> opp.getCreatedBy().getId().equals(representative.getId()))
-                .filter(opp -> opp.getStatus() == OpportunityStatus.PENDING || 
-                              opp.getStatus() == OpportunityStatus.APPROVED)
+                .filter(opp -> opp.getStatus() == OpportunityStatus.PENDING ||
+                        opp.getStatus() == OpportunityStatus.APPROVED)
                 .collect(Collectors.toList());
 
         if (myOpportunities.isEmpty()) {
@@ -164,7 +166,7 @@ public class CompanyRepresentativeMenu extends MenuBase {
         displayOpportunityList(myOpportunities);
 
         String oppId = CLIUtil.readString("\nEnter Opportunity ID to edit (or 'cancel'): ");
-        
+
         if (oppId.equalsIgnoreCase("cancel")) {
             return;
         }
@@ -206,8 +208,8 @@ public class CompanyRepresentativeMenu extends MenuBase {
             case 4:
                 int newMaxSlots = CLIUtil.readPositiveInt("Enter new maximum slots: ");
                 if (newMaxSlots < opportunity.getConfirmedSlots()) {
-                    CLIUtil.displayError("Cannot set max slots below confirmed slots (" + 
-                                       opportunity.getConfirmedSlots() + ").");
+                    CLIUtil.displayError("Cannot set max slots below confirmed slots (" +
+                            opportunity.getConfirmedSlots() + ").");
                 } else {
                     opportunity.setMaxSlots(newMaxSlots);
                     CLIUtil.displaySuccess("Maximum slots updated.");
@@ -265,13 +267,13 @@ public class CompanyRepresentativeMenu extends MenuBase {
         System.out.println("Pending applications:");
         for (int i = 0; i < pendingApplications.size(); i++) {
             InternshipApplication app = pendingApplications.get(i);
-            System.out.println((i + 1) + ". " + app.getId() + " - " + 
-                             app.getStudent().getName() + " for " + 
-                             app.getOpportunity().getTitle());
+            System.out.println((i + 1) + ". " + app.getId() + " - " +
+                    app.getStudent().getName() + " for " +
+                    app.getOpportunity().getTitle());
         }
 
-        int choice = CLIUtil.readInt("\nSelect application to review (0 to cancel): ", 
-                                     0, pendingApplications.size());
+        int choice = CLIUtil.readInt("\nSelect application to review (0 to cancel): ",
+                0, pendingApplications.size());
 
         if (choice == 0) {
             return;
@@ -294,11 +296,11 @@ public class CompanyRepresentativeMenu extends MenuBase {
                 } else {
                     selectedApp.setStatus(ApplicationStatus.SUCCESSFUL);
                     opp.setConfirmedSlots(opp.getConfirmedSlots() + 1);
-                    
+
                     if (opp.getConfirmedSlots() >= opp.getMaxSlots()) {
                         opp.setStatus(OpportunityStatus.FILLED);
                     }
-                    
+
                     applicationRepository.save(selectedApp);
                     internshipRepository.save(opp);
                     CLIUtil.displaySuccess("Application approved!");

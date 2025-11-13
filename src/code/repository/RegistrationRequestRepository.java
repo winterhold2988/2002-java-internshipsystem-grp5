@@ -1,6 +1,6 @@
-package edu.ntu.ccds.sc2002.internship.repository;
+package code.repository;
 
-import edu.ntu.ccds.sc2002.internship.model.RegistrationRequest;
+import code.model.RegistrationRequest;
 
 import java.util.Collection;
 import java.util.LinkedHashMap;

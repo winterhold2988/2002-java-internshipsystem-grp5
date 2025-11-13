@@ -1,4 +1,4 @@
-package edu.ntu.ccds.sc2002.internship.enums;
+package code.enums;
 
 // User roles within the internship placement system.
 public enum UserRole {

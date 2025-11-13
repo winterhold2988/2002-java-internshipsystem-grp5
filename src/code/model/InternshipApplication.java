@@ -1,6 +1,6 @@
-package edu.ntu.ccds.sc2002.internship.model;
+package code.model;
 
-import edu.ntu.ccds.sc2002.internship.enums.ApplicationStatus;
+import code.enums.ApplicationStatus;
 
 import java.time.LocalDateTime;
 

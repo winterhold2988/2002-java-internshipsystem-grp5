@@ -1,11 +1,10 @@
-package edu.ntu.ccds.sc2002.internship.cli;
+package code.cli;
 
-import edu.ntu.ccds.sc2002.internship.enums.ApplicationStatus;
-import edu.ntu.ccds.sc2002.internship.enums.OpportunityStatus;
-import edu.ntu.ccds.sc2002.internship.model.*;
-import edu.ntu.ccds.sc2002.internship.repository.*;
+import code.enums.ApplicationStatus;
+import code.model.*;
+import code.repository.*;
+import code.service.IntershipService;
 
-import java.time.LocalDate;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -22,9 +21,10 @@ public class StudentMenu extends MenuBase {
             ApplicationRepository applicationRepository,
             RegistrationRequestRepository registrationRequestRepository,
             WithdrawalRequestRepository withdrawalRequestRepository,
+            IntershipService internshipService,
             User currentUser) {
         super(userRepository, internshipRepository, applicationRepository,
-              registrationRequestRepository, withdrawalRequestRepository, currentUser);
+                registrationRequestRepository, withdrawalRequestRepository, internshipService, currentUser);
         this.student = (Student) currentUser;
     }
 
@@ -68,12 +68,12 @@ public class StudentMenu extends MenuBase {
     private void printStudentMenu() {
         printMenuHeader("Student Menu");
         String[] options = {
-            "View Available Internships",
-            "Apply for Internship",
-            "View My Applications",
-            "Request Application Withdrawal",
-            "Accept/Decline Placement",
-            "Change Password"
+                "View Available Internships",
+                "Apply for Internship",
+                "View My Applications",
+                "Request Application Withdrawal",
+                "Accept/Decline Placement",
+                "Change Password"
         };
         printMenuOptions(options);
     }
@@ -81,13 +81,7 @@ public class StudentMenu extends MenuBase {
     private void viewAvailableInternships() {
         CLIUtil.printHeader("Available Internships");
 
-        List<InternshipOpportunity> availableOpportunities = internshipRepository.findAll().stream()
-                .filter(opp -> opp.getStatus() == OpportunityStatus.APPROVED)
-                .filter(InternshipOpportunity::isVisible)
-                .filter(opp -> opp.getClosingDate().isAfter(LocalDate.now()) || 
-                              opp.getClosingDate().isEqual(LocalDate.now()))
-                .filter(opp -> opp.getConfirmedSlots() < opp.getMaxSlots())
-                .collect(Collectors.toList());
+        List<InternshipOpportunity> availableOpportunities = internshipService.listAvailableInternships();
 
         if (availableOpportunities.isEmpty()) {
             CLIUtil.displayInfo("No internships available at the moment.");
@@ -101,13 +95,7 @@ public class StudentMenu extends MenuBase {
     private void applyForInternship() {
         CLIUtil.printHeader("Apply for Internship");
 
-        List<InternshipOpportunity> availableOpportunities = internshipRepository.findAll().stream()
-                .filter(opp -> opp.getStatus() == OpportunityStatus.APPROVED)
-                .filter(InternshipOpportunity::isVisible)
-                .filter(opp -> opp.getClosingDate().isAfter(LocalDate.now()) || 
-                              opp.getClosingDate().isEqual(LocalDate.now()))
-                .filter(opp -> opp.getConfirmedSlots() < opp.getMaxSlots())
-                .collect(Collectors.toList());
+        List<InternshipOpportunity> availableOpportunities = internshipService.listAvailableInternships();
 
         if (availableOpportunities.isEmpty()) {
             CLIUtil.displayInfo("No internships available to apply for.");
@@ -118,7 +106,7 @@ public class StudentMenu extends MenuBase {
         displayOpportunityList(availableOpportunities);
 
         String oppId = CLIUtil.readString("\nEnter Internship ID to apply (or 'cancel'): ");
-        
+
         if (oppId.equalsIgnoreCase("cancel")) {
             return;
         }
@@ -133,7 +121,7 @@ public class StudentMenu extends MenuBase {
 
         // Check if already applied
         boolean alreadyApplied = applicationRepository.findAll().stream()
-                .anyMatch(app -> app.getStudent().getId().equals(student.getId()) 
+                .anyMatch(app -> app.getStudent().getId().equals(student.getId())
                         && app.getOpportunity().getId().equals(oppId));
 
         if (alreadyApplied) {
@@ -167,11 +155,11 @@ public class StudentMenu extends MenuBase {
                 System.out.println("Company: " + app.getOpportunity().getCompanyName());
                 System.out.println("Status: " + app.getStatus());
                 System.out.println("Submitted: " + app.getSubmittedAt());
-                
+
                 if (app.getStatus() == ApplicationStatus.SUCCESSFUL) {
                     System.out.println("Placement Accepted: " + (app.isPlacementAccepted() ? "Yes" : "No"));
                 }
-                
+
                 CLIUtil.printSeparator();
             }
         }
@@ -196,13 +184,13 @@ public class StudentMenu extends MenuBase {
         System.out.println("Your pending applications:");
         for (int i = 0; i < pendingApplications.size(); i++) {
             InternshipApplication app = pendingApplications.get(i);
-            System.out.println((i + 1) + ". " + app.getId() + " - " + 
-                             app.getOpportunity().getTitle() + " at " + 
-                             app.getOpportunity().getCompanyName());
+            System.out.println((i + 1) + ". " + app.getId() + " - " +
+                    app.getOpportunity().getTitle() + " at " +
+                    app.getOpportunity().getCompanyName());
         }
 
-        int choice = CLIUtil.readInt("\nSelect application to withdraw (0 to cancel): ", 
-                                     0, pendingApplications.size());
+        int choice = CLIUtil.readInt("\nSelect application to withdraw (0 to cancel): ",
+                0, pendingApplications.size());
 
         if (choice == 0) {
             return;
@@ -240,13 +228,13 @@ public class StudentMenu extends MenuBase {
         System.out.println("Your successful applications:");
         for (int i = 0; i < successfulApplications.size(); i++) {
             InternshipApplication app = successfulApplications.get(i);
-            System.out.println((i + 1) + ". " + app.getId() + " - " + 
-                             app.getOpportunity().getTitle() + " at " + 
-                             app.getOpportunity().getCompanyName());
+            System.out.println((i + 1) + ". " + app.getId() + " - " +
+                    app.getOpportunity().getTitle() + " at " +
+                    app.getOpportunity().getCompanyName());
         }
 
-        int choice = CLIUtil.readInt("\nSelect placement to respond to (0 to cancel): ", 
-                                     0, successfulApplications.size());
+        int choice = CLIUtil.readInt("\nSelect placement to respond to (0 to cancel): ",
+                0, successfulApplications.size());
 
         if (choice == 0) {
             return;

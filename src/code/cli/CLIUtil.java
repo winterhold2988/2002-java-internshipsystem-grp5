@@ -1,4 +1,4 @@
-package edu.ntu.ccds.sc2002.internship.cli;
+package code.cli;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;

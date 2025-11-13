@@ -1,10 +1,11 @@
-package edu.ntu.ccds.sc2002.internship;
+package code;
 
-import edu.ntu.ccds.sc2002.internship.cli.CLIUtil;
-import edu.ntu.ccds.sc2002.internship.cli.LoginHandler;
-import edu.ntu.ccds.sc2002.internship.cli.MainMenu;
-import edu.ntu.ccds.sc2002.internship.model.*;
-import edu.ntu.ccds.sc2002.internship.repository.*;
+import code.cli.CLIUtil;
+import code.cli.LoginHandler;
+import code.cli.MainMenu;
+import code.model.*;
+import code.repository.*;
+import code.service.IntershipService;
 
 /**
  * Entry point for the Internship Placement Management System.
@@ -19,6 +20,9 @@ public final class App {
         RegistrationRequestRepository registrationRequestRepository = new RegistrationRequestRepository();
         WithdrawalRequestRepository withdrawalRequestRepository = new WithdrawalRequestRepository();
 
+        // Initialize services
+        IntershipService internshipService = new IntershipService(internshipRepository);
+
         // Bootstrap sample data
         bootstrapData(userRepository, registrationRequestRepository);
 
@@ -27,7 +31,7 @@ public final class App {
 
         // Main application loop
         boolean running = true;
-        
+
         while (running) {
             // Login handler
             LoginHandler loginHandler = new LoginHandler(userRepository);
@@ -39,13 +43,13 @@ public final class App {
             } else {
                 // Show main menu
                 MainMenu mainMenu = new MainMenu(
-                    userRepository,
-                    internshipRepository,
-                    applicationRepository,
-                    registrationRequestRepository,
-                    withdrawalRequestRepository,
-                    currentUser
-                );
+                        userRepository,
+                        internshipRepository,
+                        applicationRepository,
+                        registrationRequestRepository,
+                        withdrawalRequestRepository,
+                        internshipService,
+                        currentUser);
                 mainMenu.display();
             }
         }
@@ -55,7 +59,7 @@ public final class App {
         CLIUtil.printHeader("Thank you for using the Internship Placement Management System");
         System.out.println("Goodbye!");
         CLIUtil.printBlankLine();
-        
+
         // Clean up
         CLIUtil.closeScanner();
     }
@@ -81,13 +85,13 @@ public final class App {
     /**
      * Bootstraps sample data for testing.
      */
-    private static void bootstrapData(UserRepository userRepository, 
-                                     RegistrationRequestRepository registrationRequestRepository) {
+    private static void bootstrapData(UserRepository userRepository,
+            RegistrationRequestRepository registrationRequestRepository) {
         // Create sample students
         Student student1 = new Student("S001", "Alice Tan", "password", 2, "Computer Science");
         Student student2 = new Student("S002", "Bob Lee", "password", 3, "Business Analytics");
         Student student3 = new Student("S003", "Charlie Wong", "password", 1, "Data Science");
-        
+
         userRepository.save(student1);
         userRepository.save(student2);
         userRepository.save(student3);
@@ -95,7 +99,7 @@ public final class App {
         // Create sample career center staff
         CareerCenterStaff staff1 = new CareerCenterStaff("STAFF001", "Dr. Sarah Chen", "password", "Career Services");
         CareerCenterStaff staff2 = new CareerCenterStaff("STAFF002", "Mr. David Lim", "password", "Student Affairs");
-        
+
         userRepository.save(staff1);
         userRepository.save(staff2);
 

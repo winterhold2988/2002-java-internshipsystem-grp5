@@ -1,6 +1,6 @@
-package edu.ntu.ccds.sc2002.internship.model;
+package code.model;
 
-import edu.ntu.ccds.sc2002.internship.enums.WithdrawalDecision;
+import code.enums.WithdrawalDecision;
 
 import java.time.LocalDateTime;
 

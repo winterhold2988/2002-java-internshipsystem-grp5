@@ -1,8 +1,7 @@
-package edu.ntu.ccds.sc2002.internship.model;
+package code.model;
 
-import edu.ntu.ccds.sc2002.internship.enums.InternshipLevel;
-import edu.ntu.ccds.sc2002.internship.enums.OpportunityStatus;
-
+import code.enums.InternshipLevel;
+import code.enums.OpportunityStatus;
 import java.time.LocalDate;
 
 // Represents an internship opportunity posted by a company.
@@ -124,5 +123,25 @@ public class InternshipOpportunity {
 
     public void setVisible(boolean visible) {
         this.visible = visible;
+    }
+
+    /*
+     * An opportunity is available if:
+     * - It is approved by career center staff
+     * - It is visible to students
+     * - It has available slots (confirmed slots < max slots)
+     * - The application period is still open (today is between opening and closing
+     * dates)
+     * //today refers to the current date we can swap it out for a hard set date if
+     * needed
+     */
+    public boolean isAvailable() {
+        LocalDate today = LocalDate.now();
+
+        return status == OpportunityStatus.APPROVED
+                && visible
+                && confirmedSlots < maxSlots
+                && !today.isBefore(openingDate)
+                && !today.isAfter(closingDate);
     }
 }

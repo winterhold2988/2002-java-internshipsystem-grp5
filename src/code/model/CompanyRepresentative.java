@@ -1,6 +1,6 @@
-package edu.ntu.ccds.sc2002.internship.model;
+package code.model;
 
-import edu.ntu.ccds.sc2002.internship.enums.UserRole;
+import code.enums.UserRole;
 
 // Represents a company representative user.
 public class CompanyRepresentative extends User {
