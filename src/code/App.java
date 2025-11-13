@@ -3,73 +3,176 @@ package code;
 import code.cli.CLIUtil;
 import code.cli.LoginHandler;
 import code.cli.MainMenu;
+import code.config.AppConfig;
 import code.model.*;
-import code.repository.*;
 import code.service.IntershipService;
+import code.util.*;
 
 /**
  * Entry point for the Internship Placement Management System.
+ * 
+ * This application serves as a centralized hub for:
+ * - Students (ID format: U1234567A)
+ * - Company Representatives (ID: company email)
+ * - Career Center Staff (ID: NTU account)
+ * 
+ * System Features:
+ * 1. User Authentication & Management
+ * 2. Internship Opportunity Creation & Approval
+ * 3. Student Applications (max 3 concurrent)
+ * 4. Placement Confirmation & Withdrawal
+ * 5. Comprehensive Reporting & Filtering
+ * 
+ * @version 1.0
+ * @since 2025-11-13
  */
 public final class App {
 
+    private static AppConfig config;
+
     public static void main(String[] args) {
-        // Initialize repositories
-        UserRepository userRepository = new UserRepository();
-        InternshipRepository internshipRepository = new InternshipRepository();
-        ApplicationRepository applicationRepository = new ApplicationRepository();
-        RegistrationRequestRepository registrationRequestRepository = new RegistrationRequestRepository();
-        WithdrawalRequestRepository withdrawalRequestRepository = new WithdrawalRequestRepository();
+        try {
+            // Configure logging
+            initializeLogging();
+            
+            Logger.info("=== Internship Placement Management System Starting ===");
+            
+            // Initialize application configuration
+            config = new AppConfig();
+            Logger.info("Application configuration initialized");
+            
+            // Display welcome message
+            displayWelcomeBanner();
+            
+            // Display data loading summary
+            displayDataSummary();
+            
+            // Main application loop
+            runApplicationLoop();
+            
+            // Save data before exit
+            saveDataOnExit();
+            
+            // Exit message
+            displayExitMessage();
+            
+            Logger.info("=== Internship Placement Management System Stopped ===");
+            
+        } catch (Exception e) {
+            ErrorHandler.handleException(e, "Critical error during application startup");
+            Logger.error("Application failed to start", e);
+        } finally {
+            // Clean up
+            CLIUtil.closeScanner();
+        }
+    }
 
-        // Initialize services
-        IntershipService internshipService = new IntershipService(internshipRepository);
+    /**
+     * Initializes the logging system.
+     */
+    private static void initializeLogging() {
+        Logger.setLogLevel(Logger.LogLevel.INFO);
+        Logger.setConsoleOutput(false); // Don't clutter console
+        Logger.setFileOutput(true);
+    }
 
-        // Bootstrap sample data
-        bootstrapData(userRepository, registrationRequestRepository);
-
-        // Display welcome message
-        displayWelcomeBanner();
-
-        // Main application loop
+    /**
+     * Runs the main application loop.
+     */
+    private static void runApplicationLoop() {
         boolean running = true;
 
         while (running) {
-            // Login handler
-            LoginHandler loginHandler = new LoginHandler(userRepository);
-            User currentUser = loginHandler.login();
+            try {
+                // Login handler
+                LoginHandler loginHandler = new LoginHandler(config.getUserRepository());
+                User currentUser = loginHandler.login();
 
-            if (currentUser == null) {
-                // User chose to exit or login failed
-                running = false;
-            } else {
-                // Show main menu
-                MainMenu mainMenu = new MainMenu(
-                        userRepository,
-                        internshipRepository,
-                        applicationRepository,
-                        registrationRequestRepository,
-                        withdrawalRequestRepository,
-                        internshipService,
-                        currentUser);
-                mainMenu.display();
+                if (currentUser == null) {
+                    // User chose to exit or login failed
+                    Logger.info("User chose to exit the application");
+                    running = false;
+                } else {
+                    Logger.info("User logged in: " + currentUser.getId() + " (" + currentUser.getRole() + ")");
+                    
+                    // Show main menu based on user role
+                    MainMenu mainMenu = new MainMenu(
+                            config.getUserRepository(),
+                            config.getInternshipRepository(),
+                            config.getApplicationRepository(),
+                            config.getRegistrationRequestRepository(),
+                            config.getWithdrawalRequestRepository(),
+                            new IntershipService(config.getInternshipRepository()),
+                            currentUser);
+                    mainMenu.display();
+                    
+                    Logger.info("User logged out: " + currentUser.getId());
+                }
+            } catch (Exception e) {
+                ErrorHandler.handleException(e, "Error during application loop");
+                Logger.error("Application loop error", e);
             }
         }
+    }
 
-        // Exit message
-        CLIUtil.printBlankLine();
-        CLIUtil.printHeader("Thank you for using the Internship Placement Management System");
-        System.out.println("Goodbye!");
-        CLIUtil.printBlankLine();
+    /**
+     * Displays data loading summary.
+     */
+    private static void displayDataSummary() {
+        ConsoleUtil.printSeparator();
+        ConsoleUtil.printInfo("System initialized successfully!");
+        
+        // Get statistics
+        long studentCount = config.getUserRepository().findAll().stream()
+            .filter(u -> u.getRole() == code.enums.UserRole.STUDENT).count();
+        long staffCount = config.getUserRepository().findAll().stream()
+            .filter(u -> u.getRole() == code.enums.UserRole.CAREER_CENTER_STAFF).count();
+        long repCount = config.getUserRepository().findAll().stream()
+            .filter(u -> u.getRole() == code.enums.UserRole.COMPANY_REPRESENTATIVE).count();
+        
+        ConsoleUtil.printKeyValue("Students loaded", String.valueOf(studentCount));
+        ConsoleUtil.printKeyValue("Staff loaded", String.valueOf(staffCount));
+        ConsoleUtil.printKeyValue("Company Reps loaded", String.valueOf(repCount));
+        
+        ConsoleUtil.printSeparator();
+        ConsoleUtil.printEmptyLine();
+    }
 
-        // Clean up
-        CLIUtil.closeScanner();
+    /**
+     * Saves all data before exit.
+     */
+    private static void saveDataOnExit() {
+        try {
+            Logger.info("Saving application data...");
+            config.getDataPersistenceManager().exportAll("src/resources/data");
+            Logger.info("Data saved successfully");
+        } catch (Exception e) {
+            Logger.error("Failed to save data on exit", e);
+            ErrorHandler.displayWarning("Could not save all data. Some changes may be lost.");
+        }
+    }
+
+    /**
+     * Displays exit message.
+     */
+    private static void displayExitMessage() {
+        ConsoleUtil.printEmptyLine();
+        ConsoleUtil.printHeader("Thank you for using the Internship Placement Management System");
+        ConsoleUtil.printBox(java.util.Arrays.asList(
+            "System developed by Group 5",
+            "SC/CE/CZ2002 - Object-Oriented Design & Programming",
+            "Nanyang Technological University - 2025"
+        ));
+        ConsoleUtil.printSuccess("Goodbye!");
+        ConsoleUtil.printEmptyLine();
     }
 
     /**
      * Displays the welcome banner.
      */
     private static void displayWelcomeBanner() {
-        CLIUtil.printBlankLine();
-        CLIUtil.printSeparator();
+        ConsoleUtil.printEmptyLine();
+        ConsoleUtil.printThickSeparator(80);
         System.out.println("   _____ _____ ___   ___   ___  ___  ");
         System.out.println("  / ____/ ____|__ \\ / _ \\ / _ \\|__ \\ ");
         System.out.println(" | (___| |       ) | | | | | | |  ) |");
@@ -77,63 +180,9 @@ public final class App {
         System.out.println("  ____) | |____ / /_| |_| | |_| |/ /_ ");
         System.out.println(" |_____/ \\_____|____|\\___/ \\___/|____|");
         System.out.println();
-        System.out.println("    Internship Placement Management System");
-        System.out.println("           NTU - Group 5 - 2025");
-        CLIUtil.printSeparator();
-    }
-
-    /**
-     * Bootstraps sample data for testing.
-     */
-    private static void bootstrapData(UserRepository userRepository,
-            RegistrationRequestRepository registrationRequestRepository) {
-        // Create sample students
-        Student student1 = new Student("S001", "Alice Tan", "password", 2, "Computer Science");
-        Student student2 = new Student("S002", "Bob Lee", "password", 3, "Business Analytics");
-        Student student3 = new Student("S003", "Charlie Wong", "password", 1, "Data Science");
-
-        userRepository.save(student1);
-        userRepository.save(student2);
-        userRepository.save(student3);
-
-        // Create sample career center staff
-        CareerCenterStaff staff1 = new CareerCenterStaff("STAFF001", "Dr. Sarah Chen", "password", "Career Services");
-        CareerCenterStaff staff2 = new CareerCenterStaff("STAFF002", "Mr. David Lim", "password", "Student Affairs");
-
-        userRepository.save(staff1);
-        userRepository.save(staff2);
-
-        // Create sample company representatives (some approved, some pending)
-        CompanyRepresentative rep1 = new CompanyRepresentative("CR001", "John Smith", "password");
-        rep1.setCompanyName("TechCorp Pte Ltd");
-        rep1.setDepartment("HR");
-        rep1.setPosition("HR Manager");
-        rep1.setApproved(true);
-        userRepository.save(rep1);
-
-        CompanyRepresentative rep2 = new CompanyRepresentative("CR002", "Mary Johnson", "password");
-        rep2.setCompanyName("InnovateLabs");
-        rep2.setDepartment("Talent Acquisition");
-        rep2.setPosition("Recruitment Lead");
-        rep2.setApproved(true);
-        userRepository.save(rep2);
-
-        CompanyRepresentative rep3 = new CompanyRepresentative("CR003", "Peter Tan", "password");
-        rep3.setCompanyName("StartupHub");
-        rep3.setDepartment("People & Culture");
-        rep3.setPosition("Internship Coordinator");
-        rep3.setApproved(false); // Pending approval
-        userRepository.save(rep3);
-
-        // Create registration request for pending representative
-        RegistrationRequest request = new RegistrationRequest("REG001", rep3);
-        registrationRequestRepository.save(request);
-
-        System.out.println("\n✓ Sample data loaded successfully!");
-        System.out.println("\nSample login credentials:");
-        System.out.println("  Student: S001, S002, S003 (password: password)");
-        System.out.println("  Staff: STAFF001, STAFF002 (password: password)");
-        System.out.println("  Company Rep: CR001, CR002 (approved), CR003 (pending approval)");
-        System.out.println("  All passwords: password\n");
+        System.out.println(StringUtil.padLeft("Internship Placement Management System", 60));
+        System.out.println(StringUtil.padLeft("NTU - Group 5 - 2025", 60));
+        ConsoleUtil.printThickSeparator(80);
+        ConsoleUtil.printEmptyLine();
     }
 }
