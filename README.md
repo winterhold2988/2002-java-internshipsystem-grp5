@@ -134,3 +134,166 @@ DataStatistics stats = new DataStatistics(
 stats.printReport(); // Prints comprehensive statistics
 ```
 
+## DTO (Data Transfer Object) Layer
+
+The `dto/` package contains filter and report classes for querying and displaying data:
+
+### Filter Classes
+
+Filters use the **Builder Pattern** for flexible, readable query construction:
+
+1. **InternshipOpportunityFilter** - Filter opportunities by multiple criteria
+   - Company name, status, level, major
+   - Visibility, availability
+   - Date ranges (opening/closing)
+   - Minimum available slots
+   - Created by (company rep ID)
+   - Title contains (text search)
+
+2. **InternshipApplicationFilter** - Filter applications by criteria
+   - Student ID, opportunity ID
+   - Application status, placement acceptance
+   - Submission date range
+   - Company name, student major
+
+3. **UserFilter** - Filter users by various attributes
+   - Role (student, staff, company rep)
+   - Name contains (text search)
+   - Approval status (for company reps)
+   - Department (for staff)
+   - Major and year (for students)
+   - Company name (for company reps)
+
+### Report DTOs
+
+Report DTOs convert entities into display-friendly formats with summary methods:
+
+1. **OpportunityReportDTO** - Opportunity summary for reports
+   - All key opportunity details
+   - Calculated fields (available slots)
+   - `toDisplayString()` - Full formatted display
+   - `toSummaryString()` - One-line summary
+   - `from(InternshipOpportunity)` - Factory method
+
+2. **ApplicationReportDTO** - Application summary for reports
+   - Student and opportunity details
+   - Application status and timestamps
+   - `toDisplayString()` - Full formatted display
+   - `toSummaryString()` - One-line summary
+   - `from(InternshipApplication)` - Factory method
+
+3. **UserReportDTO** - User summary for reports
+   - User details with role-specific information
+   - `toDisplayString()` - Full formatted display
+   - `toSummaryString()` - One-line summary
+   - `from(User)` - Factory method
+
+### Comprehensive Report Classes
+
+1. **SystemStatisticsReport** - System-wide statistics
+   - User counts by type
+   - Opportunity and application statistics by status
+   - Slot utilization metrics
+   - Pending requests counts
+   - `generateReport()` - Creates formatted ASCII table report
+
+2. **CompanyActivityReport** - Company-specific report
+   - All opportunities posted by company
+   - All applications received
+   - Slot statistics and fill rates
+   - Pending and successful application counts
+   - `generateReport()` - Creates formatted company report
+
+3. **StudentActivityReport** - Student-specific report
+   - Student profile information
+   - All applications submitted
+   - Application status breakdown
+   - Placement acceptance status
+   - `generateReport()` - Creates formatted student report
+
+### Report Generator
+
+**ReportGenerator** - Central report generation utility that bridges repositories and DTOs:
+
+```java
+ReportGenerator reportGen = config.getReportGenerator();
+
+// Generate system-wide statistics
+SystemStatisticsReport sysStats = reportGen.generateSystemStatistics();
+System.out.println(sysStats.generateReport());
+
+// Generate company-specific report
+CompanyActivityReport companyReport = reportGen.generateCompanyReport(companyRep);
+System.out.println(companyReport.generateReport());
+
+// Generate student-specific report
+StudentActivityReport studentReport = reportGen.generateStudentReport(student);
+System.out.println(studentReport.generateReport());
+
+// Generate filtered lists
+InternshipOpportunityFilter filter = InternshipOpportunityFilter.builder()
+    .status(OpportunityStatus.APPROVED)
+    .availableOnly(true)
+    .preferredMajor("Computer Science")
+    .build();
+List<OpportunityReportDTO> opportunities = reportGen.generateOpportunityList(filter);
+```
+
+### Usage Examples
+
+**Filtering opportunities:**
+```java
+// Find all available CS opportunities from a specific company
+InternshipOpportunityFilter filter = InternshipOpportunityFilter.builder()
+    .companyName("TechWave Pte Ltd")
+    .preferredMajor("Computer Science")
+    .availableOnly(true)
+    .status(OpportunityStatus.APPROVED)
+    .build();
+
+List<OpportunityReportDTO> results = reportGen.generateOpportunityList(filter);
+results.forEach(opp -> System.out.println(opp.toSummaryString()));
+```
+
+**Filtering applications:**
+```java
+// Find all pending applications for a student
+InternshipApplicationFilter filter = InternshipApplicationFilter.builder()
+    .studentId("U2310001A")
+    .status(ApplicationStatus.PENDING)
+    .build();
+
+List<ApplicationReportDTO> apps = reportGen.generateApplicationList(filter);
+apps.forEach(app -> System.out.println(app.toDisplayString()));
+```
+
+**Filtering users:**
+```java
+// Find all approved company representatives
+UserFilter filter = UserFilter.builder()
+    .role(UserRole.COMPANY_REPRESENTATIVE)
+    .approved(true)
+    .build();
+
+List<UserReportDTO> users = reportGen.generateUserList(filter);
+users.forEach(user -> System.out.println(user.toSummaryString()));
+```
+
+**Generating comprehensive reports:**
+```java
+// System statistics
+ReportGenerator reportGen = config.getReportGenerator();
+SystemStatisticsReport stats = reportGen.generateSystemStatistics();
+System.out.println(stats.generateReport());
+
+// Company activity
+CompanyRepresentative rep = (CompanyRepresentative) userRepo.findById("jane.ong@techwave.com").get();
+CompanyActivityReport report = reportGen.generateCompanyReport(rep);
+System.out.println(report.generateReport());
+
+// Student activity
+Student student = (Student) userRepo.findById("U2310001A").get();
+StudentActivityReport report = reportGen.generateStudentReport(student);
+System.out.println(report.generateReport());
+```
+

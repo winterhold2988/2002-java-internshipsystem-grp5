@@ -2,6 +2,7 @@ package code.config;
 
 import code.repository.*;
 import code.data.*;
+import code.dto.*;
 
 import java.io.IOException;
 
@@ -22,6 +23,9 @@ public class AppConfig {
     private final DataBootstrap dataBootstrap;
     private final DataPersistenceManager dataPersistenceManager;
     private final IDGenerator idGenerator;
+    
+    // Report generation
+    private final ReportGenerator reportGenerator;
 
     /**
      * Initializes the application configuration and loads initial data.
@@ -60,6 +64,15 @@ public class AppConfig {
                 registrationRequestRepository,
                 withdrawalRequestRepository
         );
+        
+        // Initialize report generator
+        this.reportGenerator = new ReportGenerator(
+                userRepository,
+                internshipRepository,
+                applicationRepository,
+                registrationRequestRepository,
+                withdrawalRequestRepository
+        );
     }
 
     // Getters for repositories
@@ -94,5 +107,9 @@ public class AppConfig {
 
     public IDGenerator getIdGenerator() {
         return idGenerator;
+    }
+    
+    public ReportGenerator getReportGenerator() {
+        return reportGenerator;
     }
 }
