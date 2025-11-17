@@ -4,8 +4,9 @@ import code.enums.ApplicationStatus;
 import code.model.*;
 import code.repository.*;
 import code.service.InternshipService;
+import code.service.StudentApplicationService;
+
 import java.util.List;
-import java.util.stream.Collectors;
 
 /**
  * Menu for Student users.
@@ -13,6 +14,8 @@ import java.util.stream.Collectors;
 public class StudentMenu extends MenuBase {
 
     private final Student student;
+    // SOLID - DIP: depend on abstraction that encapsulates student actions
+    private final StudentApplicationService studentApplicationService;
 
     public StudentMenu(
             UserRepository userRepository,
@@ -21,10 +24,12 @@ public class StudentMenu extends MenuBase {
             RegistrationRequestRepository registrationRequestRepository,
             WithdrawalRequestRepository withdrawalRequestRepository,
             InternshipService internshipService,
+            StudentApplicationService studentApplicationService,
             User currentUser) {
         super(userRepository, internshipRepository, applicationRepository,
                 registrationRequestRepository, withdrawalRequestRepository, internshipService, currentUser);
         this.student = (Student) currentUser;
+        this.studentApplicationService = studentApplicationService;
     }
 
     @Override
@@ -110,7 +115,9 @@ public class StudentMenu extends MenuBase {
             return;
         }
 
-        InternshipOpportunity opportunity = internshipRepository.findById(oppId).orElse(null);
+        InternshipOpportunity opportunity = studentApplicationService
+                .findOpportunityById(oppId)
+                .orElse(null);
 
         if (opportunity == null) {
             CLIUtil.displayError("Internship not found.");
@@ -119,9 +126,7 @@ public class StudentMenu extends MenuBase {
         }
 
         // Check if already applied
-        boolean alreadyApplied = applicationRepository.findAll().stream()
-                .anyMatch(app -> app.getStudent().getId().equals(student.getId())
-                        && app.getOpportunity().getId().equals(oppId));
+        boolean alreadyApplied = studentApplicationService.hasExistingApplication(student, opportunity);
 
         if (alreadyApplied) {
             CLIUtil.displayError("You have already applied for this internship.");
@@ -130,20 +135,16 @@ public class StudentMenu extends MenuBase {
         }
 
         // Create application
-        String appId = "APP" + System.currentTimeMillis();
-        InternshipApplication application = new InternshipApplication(appId, student, opportunity);
-        applicationRepository.save(application);
+        InternshipApplication application = studentApplicationService.submitApplication(student, opportunity);
 
-        CLIUtil.displaySuccess("Application submitted successfully! Application ID: " + appId);
+        CLIUtil.displaySuccess("Application submitted successfully! Application ID: " + application.getId());
         CLIUtil.pause();
     }
 
     private void viewMyApplications() {
         CLIUtil.printHeader("My Applications");
 
-        List<InternshipApplication> myApplications = applicationRepository.findAll().stream()
-                .filter(app -> app.getStudent().getId().equals(student.getId()))
-                .collect(Collectors.toList());
+        List<InternshipApplication> myApplications = studentApplicationService.getApplications(student);
 
         if (myApplications.isEmpty()) {
             CLIUtil.displayInfo("You have not submitted any applications yet.");
@@ -169,10 +170,7 @@ public class StudentMenu extends MenuBase {
     private void requestWithdrawal() {
         CLIUtil.printHeader("Request Application Withdrawal");
 
-        List<InternshipApplication> pendingApplications = applicationRepository.findAll().stream()
-                .filter(app -> app.getStudent().getId().equals(student.getId()))
-                .filter(app -> app.getStatus() == ApplicationStatus.PENDING)
-                .collect(Collectors.toList());
+        List<InternshipApplication> pendingApplications = studentApplicationService.getPendingApplications(student);
 
         if (pendingApplications.isEmpty()) {
             CLIUtil.displayInfo("No pending applications to withdraw.");
@@ -198,25 +196,17 @@ public class StudentMenu extends MenuBase {
         InternshipApplication selectedApp = pendingApplications.get(choice - 1);
         String reason = CLIUtil.readString("Enter reason for withdrawal: ");
 
-        String requestId = "WR" + System.currentTimeMillis();
-        WithdrawalRequest request = new WithdrawalRequest(requestId, selectedApp, reason);
-        withdrawalRequestRepository.save(request);
+        WithdrawalRequest request = studentApplicationService.requestWithdrawal(selectedApp, reason);
 
-        selectedApp.setStatus(ApplicationStatus.WITHDRAWAL_REQUESTED);
-        applicationRepository.save(selectedApp);
-
-        CLIUtil.displaySuccess("Withdrawal request submitted. Request ID: " + requestId);
+        CLIUtil.displaySuccess("Withdrawal request submitted. Request ID: " + request.getId());
         CLIUtil.pause();
     }
 
     private void acceptOrDeclinePlacement() {
         CLIUtil.printHeader("Accept/Decline Placement");
 
-        List<InternshipApplication> successfulApplications = applicationRepository.findAll().stream()
-                .filter(app -> app.getStudent().getId().equals(student.getId()))
-                .filter(app -> app.getStatus() == ApplicationStatus.SUCCESSFUL)
-                .filter(app -> !app.isPlacementAccepted())
-                .collect(Collectors.toList());
+        List<InternshipApplication> successfulApplications = studentApplicationService
+                .getApplicationsAwaitingDecision(student);
 
         if (successfulApplications.isEmpty()) {
             CLIUtil.displayInfo("No placements awaiting your decision.");
@@ -243,8 +233,7 @@ public class StudentMenu extends MenuBase {
         boolean accept = CLIUtil.readYesNo("Do you accept this placement?");
 
         if (accept) {
-            selectedApp.setPlacementAccepted(true);
-            applicationRepository.save(selectedApp);
+            studentApplicationService.acceptPlacement(selectedApp);
             CLIUtil.displaySuccess("Placement accepted! Congratulations!");
         } else {
             CLIUtil.displayInfo("Placement declined.");

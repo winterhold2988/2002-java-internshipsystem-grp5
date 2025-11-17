@@ -1,8 +1,10 @@
 package code;
 
 import code.cli.CLIUtil;
+import code.cli.DefaultRoleMenuFactory;
 import code.cli.LoginHandler;
 import code.cli.MainMenu;
+import code.cli.RoleMenuFactory;
 import code.config.AppConfig;
 import code.model.*;
 import code.util.*;
@@ -28,6 +30,7 @@ import code.util.*;
 public final class App {
 
     private static AppConfig config;
+    private static RoleMenuFactory roleMenuFactory;
 
     public static void main(String[] args) {
         try {
@@ -39,6 +42,14 @@ public final class App {
             // Initialize application configuration
             config = new AppConfig();
             Logger.info("Application configuration initialized");
+            roleMenuFactory = new DefaultRoleMenuFactory(
+                    config.getUserRepository(),
+                    config.getInternshipRepository(),
+                    config.getApplicationRepository(),
+                    config.getRegistrationRequestRepository(),
+                    config.getWithdrawalRequestRepository(),
+                    config.getInternshipService(),
+                    config.getStudentApplicationService());
 
             // Display welcome message
             displayWelcomeBanner();
@@ -102,6 +113,7 @@ public final class App {
                             config.getRegistrationRequestRepository(),
                             config.getWithdrawalRequestRepository(),
                             config.getInternshipService(),
+                            roleMenuFactory,
                             currentUser);
                     mainMenu.display();
 

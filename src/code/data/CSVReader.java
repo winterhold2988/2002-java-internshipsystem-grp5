@@ -26,10 +26,7 @@ public class CSVReader {
     public static List<String[]> readFromResources(String resourcePath) throws IOException {
         List<String[]> records = new ArrayList<>();
         
-        InputStream inputStream = CSVReader.class.getClassLoader().getResourceAsStream(resourcePath);
-        if (inputStream == null) {
-            throw new IOException("Resource not found: " + resourcePath);
-        }
+        InputStream inputStream = openResource(resourcePath);
 
         try (BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream))) {
             String line;
@@ -58,6 +55,31 @@ public class CSVReader {
         }
         
         return records;
+    }
+
+    /**
+     * Tries to open a resource via the classpath, then falls back to the src/resources directory.
+     */
+    private static InputStream openResource(String resourcePath) throws IOException {
+        InputStream fromClasspath = CSVReader.class.getClassLoader().getResourceAsStream(resourcePath);
+        if (fromClasspath != null) {
+            return fromClasspath;
+        }
+
+        java.nio.file.Path[] candidates = new java.nio.file.Path[] {
+                java.nio.file.Paths.get("src", "resources", resourcePath),
+                java.nio.file.Paths.get("resources", resourcePath),
+                java.nio.file.Paths.get("code", resourcePath),
+                java.nio.file.Paths.get(resourcePath)
+        };
+
+        for (java.nio.file.Path path : candidates) {
+            if (java.nio.file.Files.exists(path)) {
+                return java.nio.file.Files.newInputStream(path);
+            }
+        }
+
+        throw new IOException("Resource not found: " + resourcePath);
     }
 
     /**

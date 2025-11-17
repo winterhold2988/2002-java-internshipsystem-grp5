@@ -3,7 +3,10 @@ package code.config;
 import code.data.*;
 import code.dto.*;
 import code.repository.*;
+import code.service.DefaultStudentApplicationService;
 import code.service.InternshipService;
+import code.service.StudentApplicationService;
+
 import java.io.IOException;
 
 /**
@@ -29,6 +32,7 @@ public class AppConfig {
     private final ReportGenerator reportGenerator;
     // Services
     private final InternshipService internshipService;
+    private final StudentApplicationService studentApplicationService;
 
     /**
      * Initializes the application configuration and loads initial data.
@@ -66,6 +70,10 @@ public class AppConfig {
                 withdrawalRequestRepository);
         // Initialize services
         this.internshipService = new InternshipService(this.internshipRepository);
+        this.studentApplicationService = new DefaultStudentApplicationService(
+                this.applicationRepository,
+                this.withdrawalRequestRepository,
+                this.internshipRepository);
 
         // Initialize report generator
         this.reportGenerator = new ReportGenerator(
@@ -116,5 +124,9 @@ public class AppConfig {
 
     public InternshipService getInternshipService() {
         return internshipService;
+    }
+
+    public StudentApplicationService getStudentApplicationService() {
+        return studentApplicationService;
     }
 }
