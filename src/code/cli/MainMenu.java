@@ -1,6 +1,5 @@
 package code.cli;
 
-import code.enums.UserRole;
 import code.model.User;
 import code.repository.*;
 import code.service.InternshipService;
@@ -10,6 +9,8 @@ import code.service.InternshipService;
  */
 public class MainMenu extends MenuBase {
 
+    private final RoleMenuFactory roleMenuFactory;
+
     public MainMenu(
             UserRepository userRepository,
             InternshipRepository internshipRepository,
@@ -17,9 +18,11 @@ public class MainMenu extends MenuBase {
             RegistrationRequestRepository registrationRequestRepository,
             WithdrawalRequestRepository withdrawalRequestRepository,
             InternshipService internshipService,
+            RoleMenuFactory roleMenuFactory,
             User currentUser) {
         super(userRepository, internshipRepository, applicationRepository,
                 registrationRequestRepository, withdrawalRequestRepository, internshipService, currentUser);
+        this.roleMenuFactory = roleMenuFactory;
     }
 
     @Override
@@ -60,47 +63,18 @@ public class MainMenu extends MenuBase {
     }
 
     private void navigateToRoleMenu() {
-        UserRole role = currentUser.getRole();
-
-        switch (role) {
-            case STUDENT:
-                StudentMenu studentMenu = new StudentMenu(
-                        userRepository, internshipRepository, applicationRepository,
-                        registrationRequestRepository, withdrawalRequestRepository, internshipService, currentUser);
-                studentMenu.display();
-                break;
-
-            case COMPANY_REPRESENTATIVE:
-                CompanyRepresentativeMenu companyMenu = new CompanyRepresentativeMenu(
-                        userRepository, internshipRepository, applicationRepository,
-                        registrationRequestRepository, withdrawalRequestRepository, internshipService, currentUser);
-                companyMenu.display();
-                break;
-
-            case CAREER_CENTER_STAFF:
-                CareerCenterStaffMenu staffMenu = new CareerCenterStaffMenu(
-                        userRepository, internshipRepository, applicationRepository,
-                        registrationRequestRepository, withdrawalRequestRepository, internshipService, currentUser);
-                staffMenu.display();
-                break;
-
-            default:
-                CLIUtil.displayError("Unknown user role.");
-                CLIUtil.pause();
+        MenuBase roleMenu = roleMenuFactory.createMenu(currentUser);
+        if (roleMenu == null) {
+            CLIUtil.displayError("Unknown user role.");
+            CLIUtil.pause();
+            return;
         }
+
+        roleMenu.display();
     }
 
     private String getRoleMenuName() {
-        switch (currentUser.getRole()) {
-            case STUDENT:
-                return "Student Menu";
-            case COMPANY_REPRESENTATIVE:
-                return "Company Representative Menu";
-            case CAREER_CENTER_STAFF:
-                return "Career Center Staff Menu";
-            default:
-                return "Role Menu";
-        }
+        return roleMenuFactory.getMenuName(currentUser.getRole());
     }
 
     @Override
