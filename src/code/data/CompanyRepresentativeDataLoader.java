@@ -1,7 +1,9 @@
 package code.data;
 
 import code.model.CompanyRepresentative;
+import code.model.RegistrationRequest;
 import code.repository.UserRepository;
+import code.repository.RegistrationRequestRepository;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -17,9 +19,15 @@ public class CompanyRepresentativeDataLoader {
     private static final String CSV_PATH = "data/company_representative_list.csv";
 
     private final UserRepository userRepository;
+    private final RegistrationRequestRepository registrationRequestRepository;
+    private final IDGenerator idGenerator;
 
-    public CompanyRepresentativeDataLoader(UserRepository userRepository) {
+    public CompanyRepresentativeDataLoader(UserRepository userRepository, 
+                                          RegistrationRequestRepository registrationRequestRepository,
+                                          IDGenerator idGenerator) {
         this.userRepository = userRepository;
+        this.registrationRequestRepository = registrationRequestRepository;
+        this.idGenerator = idGenerator;
     }
 
     /**
@@ -83,6 +91,13 @@ public class CompanyRepresentativeDataLoader {
             rep.setApproved(approved);
             
             representatives.add(rep);
+            
+            // Create RegistrationRequest for pending representatives
+            if (!approved && registrationRequestRepository != null && idGenerator != null) {
+                String requestId = idGenerator.generateRequestId();
+                RegistrationRequest request = new RegistrationRequest(requestId, rep);
+                registrationRequestRepository.save(request);
+            }
         }
         
         return representatives;

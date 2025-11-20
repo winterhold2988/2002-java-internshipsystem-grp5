@@ -95,7 +95,12 @@ public final class App {
         while (running) {
             try {
                 // Login handler
-                LoginHandler loginHandler = new LoginHandler(config.getUserRepository());
+                LoginHandler loginHandler = new LoginHandler(
+                    config.getUserRepository(),
+                    config.getRegistrationRequestRepository(),
+                    config.getApplicationRepository(),
+                    config.getInternshipRepository(),
+                    config.getWithdrawalRequestRepository());
                 User currentUser = loginHandler.login();
 
                 if (currentUser == null) {
