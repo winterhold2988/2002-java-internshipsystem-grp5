@@ -73,6 +73,14 @@ The `data/` package contains classes responsible for loading, persisting, and ma
    - `exportInternshipOpportunities(String)` - Exports opportunities
    - `exportInternshipApplications(String)` - Exports applications
    - `exportAll(String)` - Exports all data to specified directory
+   
+   **Persistence Strategy**:
+   - Original CSV files in `src/resources/data/` remain unchanged (seed data preservation)
+   - Runtime changes are exported to separate files with `_export` suffix
+   - Export files: `student_list_export.csv`, `staff_list_export.csv`, `company_representative_list_export.csv`, etc.
+   - Exports are triggered automatically when the application exits
+   - To persist changes permanently, manually rename export files to replace originals
+   - This design allows testing without corrupting original seed data
 
 7. **IDGenerator** - Generates unique IDs for runtime entity creation
    - `generateApplicationId()` - Format: APP0001, APP0002, etc.

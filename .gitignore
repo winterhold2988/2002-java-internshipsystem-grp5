@@ -12,3 +12,6 @@
 
 # Generated docs
 html/
+
+# Log files
+*.log

@@ -79,7 +79,10 @@ public class DataBootstrap {
      * @throws IOException if the CSV file cannot be read
      */
     private int loadCompanyRepresentatives() throws IOException {
-        CompanyRepresentativeDataLoader loader = new CompanyRepresentativeDataLoader(userRepository);
+        IDGenerator idGenerator = new IDGenerator(applicationRepository, internshipRepository, 
+                                                   registrationRequestRepository, withdrawalRequestRepository);
+        CompanyRepresentativeDataLoader loader = new CompanyRepresentativeDataLoader(
+            userRepository, registrationRequestRepository, idGenerator);
         return loader.loadData();
     }
 
