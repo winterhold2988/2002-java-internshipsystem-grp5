@@ -122,7 +122,7 @@ public class CompanyRepresentativeMenu extends MenuBase {
         LocalDate openingDate = CLIUtil.readDate("Enter opening date");
         LocalDate closingDate = CLIUtil.readDate("Enter closing date");
 
-        int maxSlots = CLIUtil.readPositiveInt("Enter maximum number of slots: ");
+        int maxSlots = CLIUtil.readInt("Enter maximum number of slots: ", 1, 10);
 
         opportunity.setTitle(title);
         opportunity.setDescription(description);
@@ -228,7 +228,7 @@ public class CompanyRepresentativeMenu extends MenuBase {
                 CLIUtil.displaySuccess("Closing date updated.");
                 break;
             case 4:
-                int newMaxSlots = CLIUtil.readPositiveInt("Enter new maximum slots: ");
+                int newMaxSlots = CLIUtil.readInt("Enter new maximum slots: ", 1, 10);
                 if (newMaxSlots < opportunity.getConfirmedSlots()) {
                     CLIUtil.displayError("Cannot set max slots below confirmed slots (" +
                             opportunity.getConfirmedSlots() + ").");

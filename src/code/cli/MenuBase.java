@@ -142,12 +142,13 @@ public abstract class MenuBase {
         }
 
         // Major filter
-        if (CLIUtil.readYesNo("Filter by Preferred Major?")) {
-            String major = CLIUtil.readString("Enter preferred major: ");
-            if (!major.trim().isEmpty()) {
-                builder.preferredMajor(major);
-            }
-        }
+        // Commented out: Students already see only their major opportunities automatically
+        // if (CLIUtil.readYesNo("Filter by Preferred Major?")) {
+        //     String major = CLIUtil.readString("Enter preferred major: ");
+        //     if (!major.trim().isEmpty()) {
+        //         builder.preferredMajor(major);
+        //     }
+        // }
 
         // Level filter
         if (CLIUtil.readYesNo("Filter by Internship Level?")) {
