@@ -1,6 +1,8 @@
 package code.cli;
 
 import code.enums.UserRole;
+import code.filter.FilterStateManager;
+import code.filter.OpportunityFilterService;
 import code.model.User;
 import code.repository.ApplicationRepository;
 import code.repository.InternshipRepository;
@@ -29,7 +31,9 @@ public class DefaultRoleMenuFactory implements RoleMenuFactory {
             RegistrationRequestRepository registrationRequestRepository,
             WithdrawalRequestRepository withdrawalRequestRepository,
             InternshipService internshipService,
-            StudentApplicationService studentApplicationService) {
+            StudentApplicationService studentApplicationService,
+            OpportunityFilterService opportunityFilterService,
+            FilterStateManager filterStateManager) {
 
         menuCreators.put(UserRole.STUDENT, user -> new StudentMenu(
                 userRepository,
@@ -38,6 +42,8 @@ public class DefaultRoleMenuFactory implements RoleMenuFactory {
                 registrationRequestRepository,
                 withdrawalRequestRepository,
                 internshipService,
+                opportunityFilterService,
+                filterStateManager,
                 studentApplicationService,
                 user));
 
@@ -48,6 +54,8 @@ public class DefaultRoleMenuFactory implements RoleMenuFactory {
                 registrationRequestRepository,
                 withdrawalRequestRepository,
                 internshipService,
+                opportunityFilterService,
+                filterStateManager,
                 user));
 
         menuCreators.put(UserRole.CAREER_CENTER_STAFF, user -> new CareerCenterStaffMenu(
@@ -57,6 +65,8 @@ public class DefaultRoleMenuFactory implements RoleMenuFactory {
                 registrationRequestRepository,
                 withdrawalRequestRepository,
                 internshipService,
+                opportunityFilterService,
+                filterStateManager,
                 user));
 
         menuNames.put(UserRole.STUDENT, "Student Menu");

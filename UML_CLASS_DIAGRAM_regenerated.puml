@@ -47,10 +47,9 @@ package Model {
   }
 
   enum InternshipLevel {
-    FRESHMAN
-    SOPHOMORE
-    JUNIOR
-    SENIOR
+    BASIC
+    INTERMEDIATE
+    ADVANCED
   }
 
   enum WithdrawalDecision {
@@ -186,6 +185,33 @@ package Services {
     - internshipRepository: InternshipRepository
     --
     + listAvailableInternships(): List<InternshipOpportunity>
+    + listAvailableInternshipsForStudent(student: Student): List<InternshipOpportunity>
+    - isEligibleForLevel(yearOfStudy: int, level: InternshipLevel): boolean
+    - isEligibleForMajor(studentMajor: String, preferredMajor: String): boolean
+  }
+
+  interface StudentApplicationService <<interface>> {
+    + getApplications(student: Student): List<InternshipApplication>
+    + getPendingApplications(student: Student): List<InternshipApplication>
+    + getApplicationsAwaitingDecision(student: Student): List<InternshipApplication>
+    + getWithdrawableApplications(student: Student): List<InternshipApplication>
+    + findOpportunityById(id: String): Optional<InternshipOpportunity>
+    + hasExistingApplication(student: Student, opp: InternshipOpportunity): boolean
+    + submitApplication(student: Student, opp: InternshipOpportunity): InternshipApplication
+    + requestWithdrawal(app: InternshipApplication, reason: String): WithdrawalRequest
+    + acceptPlacement(app: InternshipApplication): void
+  }
+
+  class DefaultStudentApplicationService {
+    - applicationRepository: ApplicationRepository
+    - withdrawalRequestRepository: WithdrawalRequestRepository
+    - internshipRepository: InternshipRepository
+    --
+    + getApplications(student: Student): List<InternshipApplication>
+    + getWithdrawableApplications(student: Student): List<InternshipApplication>
+    + submitApplication(student: Student, opp: InternshipOpportunity): InternshipApplication
+    + requestWithdrawal(app: InternshipApplication, reason: String): WithdrawalRequest
+    + acceptPlacement(app: InternshipApplication): void
   }
 }
 
@@ -197,10 +223,14 @@ package CLI {
     # registrationRequestRepository: RegistrationRequestRepository
     # withdrawalRequestRepository: WithdrawalRequestRepository
     # internshipService: InternshipService
+    # opportunityFilterService: OpportunityFilterService
+    # filterStateManager: FilterStateManager
     # currentUser: User
     --
     + display(): void
     # handleChangePassword(): void
+    # configureFilters(): void
+    # clearFilters(): void
   }
 
   class MainMenu {
@@ -223,10 +253,13 @@ package CLI {
   }
 
   class LoginHandler {
-    - userRepository: UserRepository
     - loginService: LoginService
+    - userRepository: UserRepository
+    - registrationRequestRepository: RegistrationRequestRepository
+    - idGenerator: IDGenerator
     --
     + login(): User
+    - registerCompanyRepresentative(): void
   }
 
   class CLIUtil {
@@ -234,6 +267,42 @@ package CLI {
     {static} + readInt(prompt: String, min: int, max: int): int
     {static} + readDate(prompt: String): LocalDate
     {static} + displayInfo(msg: String): void
+  }
+}
+
+package Filter {
+  class OpportunityFilterCriteria {
+    - status: OpportunityStatus
+    - preferredMajor: String
+    - level: InternshipLevel
+    - closingDateBefore: LocalDate
+    - sortAlphabetically: boolean
+    --
+    + hasActiveFilters(): boolean
+    + {static} builder(): Builder
+  }
+
+  class OpportunityFilterService {
+    --
+    + filterOpportunities(opportunities: List, criteria: OpportunityFilterCriteria): List
+    + matchesCriteria(opp: InternshipOpportunity, criteria: OpportunityFilterCriteria): boolean
+  }
+
+  class UserFilterState {
+    - userId: String
+    - filterCriteria: OpportunityFilterCriteria
+    --
+    + getFilterCriteria(): OpportunityFilterCriteria
+    + setFilterCriteria(criteria: OpportunityFilterCriteria): void
+    + clearFilters(): void
+  }
+
+  class FilterStateManager {
+    - userFilterStates: Map<String, UserFilterState>
+    --
+    + getFilterState(userId: String): UserFilterState
+    + updateFilterCriteria(userId: String, criteria: OpportunityFilterCriteria): void
+    + clearFilters(userId: String): void
   }
 }
 
@@ -249,8 +318,14 @@ package Config_Data_App {
     - idGenerator: IDGenerator
     - reportGenerator: ReportGenerator
     - internshipService: InternshipService
+    - studentApplicationService: StudentApplicationService
+    - opportunityFilterService: OpportunityFilterService
+    - filterStateManager: FilterStateManager
     --
     + getInternshipService(): InternshipService
+    + getStudentApplicationService(): StudentApplicationService
+    + getOpportunityFilterService(): OpportunityFilterService
+    + getFilterStateManager(): FilterStateManager
   }
 
   class DataBootstrap {
@@ -326,12 +401,18 @@ App --> CLIUtil : uses
 
 ' Login flow
 LoginHandler "1" --> "1" UserRepository : queries
+LoginHandler "1" --> "1" RegistrationRequestRepository : creates requests
+LoginHandler "1" --> "1" IDGenerator : generates IDs
 LoginHandler "1" --> "1" LoginService : delegates
 LoginHandler "1" --> "1" User : returns
 
 ' Service layer dependencies
 LoginService "1" --> "1" UserRepository : authenticatesAgainst
 InternshipService "1" --> "1" InternshipRepository : filtersFrom
+DefaultStudentApplicationService ..|> StudentApplicationService : implements
+DefaultStudentApplicationService "1" --> "1" ApplicationRepository : uses
+DefaultStudentApplicationService "1" --> "1" WithdrawalRequestRepository : uses
+DefaultStudentApplicationService "1" --> "1" InternshipRepository : uses
 
 ' Menu dependencies grouped to reduce crossings
 MenuBase "1" --> "1" UserRepository : userRepo
@@ -340,10 +421,23 @@ MenuBase "1" --> "1" ApplicationRepository : applicationRepo
 MenuBase "1" --> "1" RegistrationRequestRepository : regRequestRepo
 MenuBase "1" --> "1" WithdrawalRequestRepository : withdrawalRepo
 MenuBase "1" --> "1" InternshipService : internshipService
+StudentMenu "1" --> "1" StudentApplicationService : uses
 
 ' Data bootstrap
 DataBootstrap "1" --> "1" UserRepository : populates
 DataBootstrap "1" --> "1" InternshipRepository : populates
+AppConfig "1" --> "1" InternshipService : creates
+AppConfig "1" --> "1" StudentApplicationService : creates
+AppConfig "1" --> "1" OpportunityFilterService : creates
+AppConfig "1" --> "1" FilterStateManager : creates
+
+' Filter relationships
+FilterStateManager "1" *-- "0..*" UserFilterState : manages
+UserFilterState "1" --> "1" OpportunityFilterCriteria : uses
+OpportunityFilterService "1" --> "*" InternshipOpportunity : filters
+OpportunityFilterService "1" --> "1" OpportunityFilterCriteria : applies
+MenuBase "1" --> "1" OpportunityFilterService : uses
+MenuBase "1" --> "1" FilterStateManager : uses
 
 ' Small layout hints: place AppConfig and Repositories apart to reduce arrow overlap
 AppConfig -[hidden]- UserRepository
@@ -357,6 +451,12 @@ note bottom
   Composition: Repositories *-- domain objects (explicit multiplicity "1" to "0..*").
   Aggregation: CompanyRepresentative o-- InternshipOpportunity indicates shared ownership.
   Dependency Inversion: Services depend on repository abstractions (LoginService -> UserRepository).
+  Business Logic: InternshipService filters by year (Year 1-2: BASIC; Year 3-4: All) and major (case-insensitive).
+  Withdrawal Enhancement: Students can withdraw from both PENDING and SUCCESSFUL applications.
+  Self-Registration: Company representatives can register via LoginHandler (requires staff approval).
+  Filter System: OpportunityFilterService applies user-configured filters (Status, Major, Level, Date).
+  Filter Persistence: FilterStateManager maintains filter settings per user across menu navigation.
+  Default Behavior: All opportunities sorted alphabetically by title.
 end note
 
 @enduml

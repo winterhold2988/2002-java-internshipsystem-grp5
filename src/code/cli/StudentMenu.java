@@ -1,6 +1,9 @@
 package code.cli;
 
 import code.enums.ApplicationStatus;
+import code.filter.FilterStateManager;
+import code.filter.OpportunityFilterCriteria;
+import code.filter.OpportunityFilterService;
 import code.model.*;
 import code.repository.*;
 import code.service.InternshipService;
@@ -24,10 +27,13 @@ public class StudentMenu extends MenuBase {
             RegistrationRequestRepository registrationRequestRepository,
             WithdrawalRequestRepository withdrawalRequestRepository,
             InternshipService internshipService,
+            OpportunityFilterService opportunityFilterService,
+            FilterStateManager filterStateManager,
             StudentApplicationService studentApplicationService,
             User currentUser) {
         super(userRepository, internshipRepository, applicationRepository,
-                registrationRequestRepository, withdrawalRequestRepository, internshipService, currentUser);
+                registrationRequestRepository, withdrawalRequestRepository, internshipService,
+                opportunityFilterService, filterStateManager, currentUser);
         this.student = (Student) currentUser;
         this.studentApplicationService = studentApplicationService;
     }
@@ -38,7 +44,7 @@ public class StudentMenu extends MenuBase {
 
         while (running) {
             printStudentMenu();
-            int choice = CLIUtil.readInt("Enter your choice: ", 0, 6);
+            int choice = CLIUtil.readInt("Enter your choice: ", 0, 8);
 
             switch (choice) {
                 case 1:
@@ -57,6 +63,12 @@ public class StudentMenu extends MenuBase {
                     acceptOrDeclinePlacement();
                     break;
                 case 6:
+                    configureFilters();
+                    break;
+                case 7:
+                    clearFilters();
+                    break;
+                case 8:
                     handleChangePassword();
                     break;
                 case 0:
@@ -77,6 +89,8 @@ public class StudentMenu extends MenuBase {
                 "View My Applications",
                 "Request Application Withdrawal",
                 "Accept/Decline Placement",
+                "Configure Filters",
+                "Clear Filters",
                 "Change Password"
         };
         printMenuOptions(options);
@@ -85,12 +99,22 @@ public class StudentMenu extends MenuBase {
     private void viewAvailableInternships() {
         CLIUtil.printHeader("Available Internships");
 
-        List<InternshipOpportunity> availableOpportunities = internshipService.listAvailableInternships();
+        // Get student-eligible opportunities (year and major filtered)
+        List<InternshipOpportunity> availableOpportunities = internshipService.listAvailableInternshipsForStudent(student);
 
-        if (availableOpportunities.isEmpty()) {
-            CLIUtil.displayInfo("No internships available at the moment.");
+        // Apply user's filter settings
+        OpportunityFilterCriteria filterCriteria = filterStateManager.getFilterCriteria(currentUser.getId());
+        List<InternshipOpportunity> filteredOpportunities = opportunityFilterService.filterOpportunities(availableOpportunities, filterCriteria);
+
+        if (filterCriteria.hasActiveFilters()) {
+            System.out.println(filterCriteria.toString());
+            CLIUtil.printSeparator();
+        }
+
+        if (filteredOpportunities.isEmpty()) {
+            CLIUtil.displayInfo("No internships match your criteria.");
         } else {
-            displayOpportunityList(availableOpportunities);
+            displayOpportunityList(filteredOpportunities);
         }
 
         CLIUtil.pause();
@@ -99,15 +123,20 @@ public class StudentMenu extends MenuBase {
     private void applyForInternship() {
         CLIUtil.printHeader("Apply for Internship");
 
-        List<InternshipOpportunity> availableOpportunities = internshipService.listAvailableInternships();
+        // Get student-eligible opportunities (year and major filtered)
+        List<InternshipOpportunity> availableOpportunities = internshipService.listAvailableInternshipsForStudent(student);
 
-        if (availableOpportunities.isEmpty()) {
+        // Apply user's filter settings
+        OpportunityFilterCriteria filterCriteria = filterStateManager.getFilterCriteria(currentUser.getId());
+        List<InternshipOpportunity> filteredOpportunities = opportunityFilterService.filterOpportunities(availableOpportunities, filterCriteria);
+
+        if (filteredOpportunities.isEmpty()) {
             CLIUtil.displayInfo("No internships available to apply for.");
             CLIUtil.pause();
             return;
         }
 
-        displayOpportunityList(availableOpportunities);
+        displayOpportunityList(filteredOpportunities);
 
         String oppId = CLIUtil.readString("\nEnter Internship ID to apply (or 'cancel'): ");
 
@@ -170,30 +199,31 @@ public class StudentMenu extends MenuBase {
     private void requestWithdrawal() {
         CLIUtil.printHeader("Request Application Withdrawal");
 
-        List<InternshipApplication> pendingApplications = studentApplicationService.getPendingApplications(student);
+        List<InternshipApplication> withdrawableApplications = studentApplicationService.getWithdrawableApplications(student);
 
-        if (pendingApplications.isEmpty()) {
-            CLIUtil.displayInfo("No pending applications to withdraw.");
+        if (withdrawableApplications.isEmpty()) {
+            CLIUtil.displayInfo("No applications available to withdraw.");
             CLIUtil.pause();
             return;
         }
 
-        System.out.println("Your pending applications:");
-        for (int i = 0; i < pendingApplications.size(); i++) {
-            InternshipApplication app = pendingApplications.get(i);
+        System.out.println("Your applications (pending and successful):");
+        for (int i = 0; i < withdrawableApplications.size(); i++) {
+            InternshipApplication app = withdrawableApplications.get(i);
+            String statusInfo = app.getStatus() == ApplicationStatus.SUCCESSFUL ? " [SUCCESSFUL]" : " [PENDING]";
             System.out.println((i + 1) + ". " + app.getId() + " - " +
                     app.getOpportunity().getTitle() + " at " +
-                    app.getOpportunity().getCompanyName());
+                    app.getOpportunity().getCompanyName() + statusInfo);
         }
 
         int choice = CLIUtil.readInt("\nSelect application to withdraw (0 to cancel): ",
-                0, pendingApplications.size());
+                0, withdrawableApplications.size());
 
         if (choice == 0) {
             return;
         }
 
-        InternshipApplication selectedApp = pendingApplications.get(choice - 1);
+        InternshipApplication selectedApp = withdrawableApplications.get(choice - 1);
         String reason = CLIUtil.readString("Enter reason for withdrawal: ");
 
         WithdrawalRequest request = studentApplicationService.requestWithdrawal(selectedApp, reason);

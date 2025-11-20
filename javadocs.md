@@ -45,8 +45,12 @@ The system provides role-based access control, CSV data import/export capabiliti
 - Apply for up to 3 concurrent internships
 - Track application status in real-time
 - Accept/decline placement offers
-- Request withdrawal of applications
+- Request withdrawal of pending AND successful applications
 - Level-based opportunity filtering (Year 1-2: BASIC only; Year 3-4: All levels)
+- Major-based filtering (students only see opportunities matching their major or open to all majors)
+- Configurable filters: Status, Major, Level, Closing Date
+- Persistent filter settings across menu navigation
+- Alphabetical sorting by default
 
 #### **Company Representative Features**
 - Self-registration with staff approval workflow
@@ -55,13 +59,16 @@ The system provides role-based access control, CSV data import/export capabiliti
 - Review and approve/reject student applications
 - Toggle opportunity visibility for students
 - View application statistics
+- Configurable filters for viewing opportunities
+- Filter settings persist across menu navigation
 
 #### **Career Center Staff Features**
 - Approve/reject company representative registrations
 - Approve/reject internship opportunities before visibility
 - Review and process withdrawal requests
 - Generate comprehensive system reports
-- Filter and analyze data by multiple criteria
+- Configurable filters: Status, Major, Level, Closing Date
+- Filter settings persist across menu navigation
 - Manage users across all roles
 
 #### **Data Management**
@@ -216,8 +223,32 @@ src/
 
 ---
 
+### **filter** - Filter Management Package
+**Purpose**: Provides comprehensive, persistent filtering system for internship opportunities with user-configurable criteria.
+
+**Key Classes**:
+- **OpportunityFilterCriteria.java**: Immutable value object holding filter settings (Status, Major, Level, Closing Date)
+- **OpportunityFilterService.java**: Stateless service that applies filters and sorts opportunities alphabetically
+- **UserFilterState.java**: Stores per-user filter preferences with default alphabetical sorting
+- **FilterStateManager.java**: Thread-safe manager for all users' filter states (session-based persistence)
+
+**OO/SOLID Principles Applied**:
+- **Single Responsibility Principle (SRP)**: Each class handles one aspect (criteria, service, state, manager)
+- **Open/Closed Principle (OCP)**: Extensible via Builder pattern and new filter methods without modifying existing code
+- **Dependency Inversion Principle (DIP)**: FilterStateManager abstracts persistence (could be extended to database)
+- **Immutability Pattern**: OpportunityFilterCriteria is thread-safe with final fields and no setters
+- **Builder Pattern**: Flexible construction of filter criteria
+
+---
+
 ### **service** - Business Logic Package
-**Purpose**: Encapsulates complex business rules and workflows. Acts as intermediary between presentation layer (CLI) and data layer (repositories).
+**Purpose**: Encapsulates complex business rules and workflows. Acts as intermediary between presentation layer (CLI) and data layer (repositories). Includes year-based and major-based filtering logic for internship opportunities.
+
+**Key Services**:
+- **InternshipService.java**: Filters internships by year (Year 1-2: BASIC only; Year 3-4: All levels) and major (case-insensitive matching)
+- **StudentApplicationService.java**: Interface for student application operations including withdrawal requests
+- **DefaultStudentApplicationService.java**: Implements student operations; supports withdrawal of both pending and successful applications
+- **LoginService.java**: Handles user authentication
 
 **OO/SOLID Principles Applied**:
 - **Dependency Inversion Principle (DIP)**: `StudentApplicationService.java` interface allows CLI to depend on abstraction rather than concrete implementation

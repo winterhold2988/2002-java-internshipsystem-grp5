@@ -20,6 +20,8 @@ public interface StudentApplicationService {
 
     List<InternshipApplication> getApplicationsAwaitingDecision(Student student);
 
+    List<InternshipApplication> getWithdrawableApplications(Student student);
+
     Optional<InternshipOpportunity> findOpportunityById(String opportunityId);
 
     boolean hasExistingApplication(Student student, InternshipOpportunity opportunity);

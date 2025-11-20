@@ -1,6 +1,9 @@
 package code.cli;
 
 import code.enums.*;
+import code.filter.FilterStateManager;
+import code.filter.OpportunityFilterCriteria;
+import code.filter.OpportunityFilterService;
 import code.model.*;
 import code.repository.*;
 import code.service.InternshipService;
@@ -22,9 +25,12 @@ public class CompanyRepresentativeMenu extends MenuBase {
             RegistrationRequestRepository registrationRequestRepository,
             WithdrawalRequestRepository withdrawalRequestRepository,
             InternshipService internshipService,
+            OpportunityFilterService opportunityFilterService,
+            FilterStateManager filterStateManager,
             User currentUser) {
         super(userRepository, internshipRepository, applicationRepository,
-                registrationRequestRepository, withdrawalRequestRepository, internshipService, currentUser);
+                registrationRequestRepository, withdrawalRequestRepository, internshipService,
+                opportunityFilterService, filterStateManager, currentUser);
         this.representative = (CompanyRepresentative) currentUser;
     }
 
@@ -43,7 +49,7 @@ public class CompanyRepresentativeMenu extends MenuBase {
 
         while (running) {
             printCompanyMenu();
-            int choice = CLIUtil.readInt("Enter your choice: ", 0, 6);
+            int choice = CLIUtil.readInt("Enter your choice: ", 0, 8);
 
             switch (choice) {
                 case 1:
@@ -62,6 +68,12 @@ public class CompanyRepresentativeMenu extends MenuBase {
                     reviewApplications();
                     break;
                 case 6:
+                    configureFilters();
+                    break;
+                case 7:
+                    clearFilters();
+                    break;
+                case 8:
                     handleChangePassword();
                     break;
                 case 0:
@@ -82,6 +94,8 @@ public class CompanyRepresentativeMenu extends MenuBase {
                 "Edit Internship Opportunity",
                 "View Applications for My Opportunities",
                 "Review Applications (Approve/Reject)",
+                "Configure Filters",
+                "Clear Filters",
                 "Change Password"
         };
         printMenuOptions(options);
@@ -138,10 +152,19 @@ public class CompanyRepresentativeMenu extends MenuBase {
                 .filter(opp -> opp.getCreatedBy().getId().equals(representative.getId()))
                 .collect(Collectors.toList());
 
-        if (myOpportunities.isEmpty()) {
-            CLIUtil.displayInfo("You have not created any opportunities yet.");
+        // Apply user's filter settings
+        OpportunityFilterCriteria filterCriteria = filterStateManager.getFilterCriteria(currentUser.getId());
+        List<InternshipOpportunity> filteredOpportunities = opportunityFilterService.filterOpportunities(myOpportunities, filterCriteria);
+
+        if (filterCriteria.hasActiveFilters()) {
+            System.out.println(filterCriteria.toString());
+            CLIUtil.printSeparator();
+        }
+
+        if (filteredOpportunities.isEmpty()) {
+            CLIUtil.displayInfo("No opportunities match your criteria.");
         } else {
-            displayOpportunityList(myOpportunities);
+            displayOpportunityList(filteredOpportunities);
         }
 
         CLIUtil.pause();

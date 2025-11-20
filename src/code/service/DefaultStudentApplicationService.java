@@ -53,6 +53,14 @@ public class DefaultStudentApplicationService implements StudentApplicationServi
     }
 
     @Override
+    public List<InternshipApplication> getWithdrawableApplications(Student student) {
+        return applicationRepository.findByStudent(student)
+                .filter(app -> app.getStatus() == ApplicationStatus.PENDING || 
+                              app.getStatus() == ApplicationStatus.SUCCESSFUL)
+                .collect(Collectors.toList());
+    }
+
+    @Override
     public Optional<InternshipOpportunity> findOpportunityById(String opportunityId) {
         return internshipRepository.findById(opportunityId);
     }

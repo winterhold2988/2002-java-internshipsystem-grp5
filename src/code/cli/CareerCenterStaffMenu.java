@@ -1,6 +1,9 @@
 package code.cli;
 
 import code.enums.*;
+import code.filter.FilterStateManager;
+import code.filter.OpportunityFilterCriteria;
+import code.filter.OpportunityFilterService;
 import code.model.*;
 import code.repository.*;
 import code.service.InternshipService;
@@ -19,9 +22,12 @@ public class CareerCenterStaffMenu extends MenuBase {
             RegistrationRequestRepository registrationRequestRepository,
             WithdrawalRequestRepository withdrawalRequestRepository,
             InternshipService internshipService,
+            OpportunityFilterService opportunityFilterService,
+            FilterStateManager filterStateManager,
             User currentUser) {
         super(userRepository, internshipRepository, applicationRepository,
-                registrationRequestRepository, withdrawalRequestRepository, internshipService, currentUser);
+                registrationRequestRepository, withdrawalRequestRepository, internshipService,
+                opportunityFilterService, filterStateManager, currentUser);
     }
 
     @Override
@@ -30,7 +36,7 @@ public class CareerCenterStaffMenu extends MenuBase {
 
         while (running) {
             printStaffMenu();
-            int choice = CLIUtil.readInt("Enter your choice: ", 0, 8);
+            int choice = CLIUtil.readInt("Enter your choice: ", 0, 10);
 
             switch (choice) {
                 case 1:
@@ -55,6 +61,12 @@ public class CareerCenterStaffMenu extends MenuBase {
                     manageUsers();
                     break;
                 case 8:
+                    configureFilters();
+                    break;
+                case 9:
+                    clearFilters();
+                    break;
+                case 10:
                     handleChangePassword();
                     break;
                 case 0:
@@ -77,6 +89,8 @@ public class CareerCenterStaffMenu extends MenuBase {
                 "Review Withdrawal Requests",
                 "Generate Reports",
                 "Manage Users",
+                "Configure Filters",
+                "Clear Filters",
                 "Change Password"
         };
         printMenuOptions(options);
@@ -210,10 +224,19 @@ public class CareerCenterStaffMenu extends MenuBase {
         List<InternshipOpportunity> opportunities = internshipRepository.findAll().stream()
                 .collect(Collectors.toList());
 
-        if (opportunities.isEmpty()) {
-            CLIUtil.displayInfo("No opportunities available.");
+        // Apply user's filter settings
+        OpportunityFilterCriteria filterCriteria = filterStateManager.getFilterCriteria(currentUser.getId());
+        List<InternshipOpportunity> filteredOpportunities = opportunityFilterService.filterOpportunities(opportunities, filterCriteria);
+
+        if (filterCriteria.hasActiveFilters()) {
+            System.out.println(filterCriteria.toString());
+            CLIUtil.printSeparator();
+        }
+
+        if (filteredOpportunities.isEmpty()) {
+            CLIUtil.displayInfo("No opportunities match your criteria.");
         } else {
-            for (InternshipOpportunity opp : opportunities) {
+            for (InternshipOpportunity opp : filteredOpportunities) {
                 displayOpportunityDetails(opp);
             }
         }

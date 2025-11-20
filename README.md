@@ -515,6 +515,107 @@ Logger.entering("UserRepository", "findById");
 Logger.exiting("UserRepository", "findById", user);
 ```
 
+## Filter Layer Implementation
+
+The `filter/` package provides a comprehensive, persistent filtering system for internship opportunities:
+
+### Core Filter Classes
+
+1. **OpportunityFilterCriteria** - Immutable value object holding filter settings
+   - Builder pattern for flexible construction
+   - Supports: Status, Preferred Major, Level, Closing Date
+   - Default: Alphabetical sorting enabled
+
+2. **OpportunityFilterService** - Stateless service to apply filters
+   - `filterOpportunities()` - Applies all criteria and sorts
+   - `matchesCriteria()` - Validates single opportunity
+   - Uses Java Streams for efficient filtering
+
+3. **UserFilterState** - Stores per-user filter preferences
+   - Mutable state management
+   - Default: Alphabetical sorting, no active filters
+
+4. **FilterStateManager** - Manages filter states across all users
+   - Thread-safe ConcurrentHashMap
+   - Session-based persistence
+   - Methods: `getFilterState()`, `updateFilterCriteria()`, `clearFilters()`
+
+### Filter Integration
+
+**All user types can configure filters via menu options:**
+- Configure Filters: Interactive UI to set filter criteria
+- Clear Filters: Reset to default (alphabetical sorting only)
+- Filter settings persist across menu navigation within a session
+
+**Available Filter Criteria:**
+- **Status**: PENDING, APPROVED, REJECTED, FILLED
+- **Preferred Major**: Case-insensitive text matching
+- **Internship Level**: BASIC, INTERMEDIATE, ADVANCED
+- **Closing Date**: Opportunities closing before specified date
+- **Sorting**: Alphabetical by title (always enabled)
+
+### SOLID Principles in Filter Package
+- **SRP**: Each class has single responsibility (criteria, service, state, manager)
+- **OCP**: Extensible via builder pattern and new filter methods
+- **DIP**: FilterStateManager could be extended to database persistence
+- **Immutability**: OpportunityFilterCriteria is thread-safe and immutable
+
+## Business Logic & Filtering
+
+### InternshipService - Opportunity Filtering
+
+The `InternshipService` class implements multi-layered filtering for internship opportunities:
+
+**Year-based Level Filtering:**
+- Year 1-2 students: Can only view BASIC level opportunities
+- Year 3-4 students: Can view all levels (BASIC, INTERMEDIATE, ADVANCED)
+- Implemented in `isEligibleForLevel(int yearOfStudy, InternshipLevel level)`
+
+**Major-based Filtering:**
+- Students only see opportunities matching their major (case-insensitive)
+- Opportunities with no preferred major are visible to all students
+- Implemented in `isEligibleForMajor(String studentMajor, String preferredMajor)`
+
+**Combined Filtering:**
+```java
+public List<InternshipOpportunity> listAvailableInternshipsForStudent(Student student) {
+    int year = student.getYearOfStudy();
+    String studentMajor = student.getMajor();
+    return internshipRepository.findAll()
+            .stream()
+            .filter(InternshipOpportunity::isAvailable)
+            .filter(opp -> isEligibleForLevel(year, opp.getLevel()))
+            .filter(opp -> isEligibleForMajor(studentMajor, opp.getPreferredMajor()))
+            .collect(Collectors.toList());
+}
+```
+
+**User-Configurable Filters:**
+- After automatic year/major filtering, users can apply additional filters
+- Filters applied via `OpportunityFilterService`
+- Results sorted alphabetically by default
+
+### StudentApplicationService - Withdrawal Enhancement
+
+The `DefaultStudentApplicationService` allows students to withdraw from both pending and successful applications:
+
+```java
+public List<InternshipApplication> getWithdrawableApplications(Student student) {
+    return applicationRepository.findByStudent(student)
+            .filter(app -> app.getStatus() == ApplicationStatus.PENDING || 
+                          app.getStatus() == ApplicationStatus.SUCCESSFUL)
+            .collect(Collectors.toList());
+}
+```
+
+### LoginHandler - Company Representative Self-Registration
+
+Company representatives can self-register via the login screen:
+- Type `register` at the login prompt
+- Provide company details, email, and password
+- Registration request is created with PENDING status
+- Staff must approve before representative can access the system
+
 ## CLI pattern
 ```
 

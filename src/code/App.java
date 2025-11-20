@@ -49,7 +49,9 @@ public final class App {
                     config.getRegistrationRequestRepository(),
                     config.getWithdrawalRequestRepository(),
                     config.getInternshipService(),
-                    config.getStudentApplicationService());
+                    config.getStudentApplicationService(),
+                    config.getOpportunityFilterService(),
+                    config.getFilterStateManager());
 
             // Display welcome message
             displayWelcomeBanner();
@@ -118,6 +120,8 @@ public final class App {
                             config.getRegistrationRequestRepository(),
                             config.getWithdrawalRequestRepository(),
                             config.getInternshipService(),
+                            config.getOpportunityFilterService(),
+                            config.getFilterStateManager(),
                             roleMenuFactory,
                             currentUser);
                     mainMenu.display();

@@ -1,5 +1,7 @@
 package code.cli;
 
+import code.filter.FilterStateManager;
+import code.filter.OpportunityFilterService;
 import code.model.User;
 import code.repository.*;
 import code.service.InternshipService;
@@ -18,10 +20,13 @@ public class MainMenu extends MenuBase {
             RegistrationRequestRepository registrationRequestRepository,
             WithdrawalRequestRepository withdrawalRequestRepository,
             InternshipService internshipService,
+            OpportunityFilterService opportunityFilterService,
+            FilterStateManager filterStateManager,
             RoleMenuFactory roleMenuFactory,
             User currentUser) {
         super(userRepository, internshipRepository, applicationRepository,
-                registrationRequestRepository, withdrawalRequestRepository, internshipService, currentUser);
+                registrationRequestRepository, withdrawalRequestRepository, internshipService,
+                opportunityFilterService, filterStateManager, currentUser);
         this.roleMenuFactory = roleMenuFactory;
     }
 

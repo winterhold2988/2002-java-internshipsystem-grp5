@@ -37,17 +37,20 @@ Provides common CLI utilities:
 - `pause()` - Wait for user to press Enter
 
 ### LoginHandler.java
-Manages user authentication:
+Manages user authentication and company representative self-registration:
 - Validates user credentials
 - Supports up to 3 login attempts
 - Detects default password usage
 - Allows user to exit during login
+- Enables company representatives to self-register (requires staff approval)
 
 **Features:**
 - Login attempt limiting (3 attempts)
 - Default password warning
 - User-friendly error messages
 - Exit option during login
+- Self-registration for company representatives (type 'register' at login prompt)
+- Email validation and password confirmation for new registrations
 
 ### MenuBase.java
 Abstract base class for all menu implementations:
@@ -85,11 +88,16 @@ Student-specific functionality:
 0. Back to Main Menu
 
 **Features:**
-- Browse approved, visible internships with available slots
+- Browse approved, visible internships filtered by student's year and major
 - Submit internship applications
 - Track application status
-- Request withdrawal for pending applications
+- Request withdrawal for pending AND successful applications
 - Accept or decline successful placements
+- Automatic filtering: Year 1-2 see BASIC only; Year 3-4 see all levels
+- Major matching: Only see opportunities for student's major or open to all majors
+- Configure custom filters: Status, Major, Level, Closing Date
+- Clear filters to reset to default
+- Filter settings persist across menu navigation
 
 ### CompanyRepresentativeMenu.java
 Company representative functionality:

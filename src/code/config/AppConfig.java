@@ -2,6 +2,8 @@ package code.config;
 
 import code.data.*;
 import code.dto.*;
+import code.filter.FilterStateManager;
+import code.filter.OpportunityFilterService;
 import code.repository.*;
 import code.service.DefaultStudentApplicationService;
 import code.service.InternshipService;
@@ -33,6 +35,9 @@ public class AppConfig {
     // Services
     private final InternshipService internshipService;
     private final StudentApplicationService studentApplicationService;
+    // Filter components
+    private final OpportunityFilterService opportunityFilterService;
+    private final FilterStateManager filterStateManager;
 
     /**
      * Initializes the application configuration and loads initial data.
@@ -82,6 +87,10 @@ public class AppConfig {
                 applicationRepository,
                 registrationRequestRepository,
                 withdrawalRequestRepository);
+        
+        // Initialize filter components
+        this.opportunityFilterService = new OpportunityFilterService();
+        this.filterStateManager = new FilterStateManager();
     }
 
     // Getters for repositories
@@ -128,5 +137,13 @@ public class AppConfig {
 
     public StudentApplicationService getStudentApplicationService() {
         return studentApplicationService;
+    }
+
+    public OpportunityFilterService getOpportunityFilterService() {
+        return opportunityFilterService;
+    }
+
+    public FilterStateManager getFilterStateManager() {
+        return filterStateManager;
     }
 }
